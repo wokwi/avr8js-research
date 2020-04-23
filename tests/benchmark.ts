@@ -12,18 +12,18 @@ function simpleAddComparison() {
     const suite = new Suite
     const start = 0;
     const end = 10000;
-    suite.add('Assembly external loop add', () => {
-        let res = 0;
-        for (let i = start; i < end; ++i) {
-            res = assembly.add(res, i)
-        }
-    }).add('Assembly internal loop add', () => {
-        assembly.addLoop(start, end)
-    }).add('JavaScript loop add', () => {
+    suite.add('JavaScript loop - JavaScript add', () => {
         let res = 0;
         for (let i = start; i < end; ++i) {
             res += i;
         }
+    }).add('JavaScript loop - Assembly add', () => {
+        let res = 0;
+        for (let i = start; i < end; ++i) {
+            res = assembly.add(res, i)
+        }
+    }).add('Assembly loop - Assembly add', () => {
+        assembly.addLoop(start, end)
     }).on('cycle', event => {
         console.log(String(event.target))
     }).run();
