@@ -1,5 +1,6 @@
 import {was as assembly} from "../src";
-import {Suite} from "benchmark";
+import * as Benchmark from "benchmark";
+const Suite = Benchmark.Suite
 
 export function run() {
     console.log("===", "Start benchmarking...", "===")
@@ -26,8 +27,20 @@ function simpleAddComparison() {
         assembly.addLoop(start, end)
     }).on('cycle', event => {
         console.log(String(event.target))
+    }).on('complete', event => {
+        console.log("-", "Result", "-")
+        const first = event.currentTarget[0]
+        const third = event.currentTarget[2]
+        logDiff(first, third)
     }).run();
     console.log("=", "Add comparison finished", "=")
+}
+
+function logDiff(target1, target2) {
+    const faster = target1.hz > target2.hz ? target1 : target2;
+    const slower = target1.hz < target2.hz ? target1 : target2;
+    const diff = (faster.hz - slower.hz) / slower.hz * 100;
+    console.log(`'${faster.name}' is ~${diff.toFixed(2)}% faster than '${slower.name}'.`);
 }
 
 function runAvrAssembly() {

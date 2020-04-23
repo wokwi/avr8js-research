@@ -11,7 +11,6 @@
     "@assemblyscript/loader": "^0.9.4"
   },
   "devDependencies": {
-    "@types/benchmark": "^1.0.31",
     "@types/node": "^13.13.1",
     "typescript": "^3.8.3",
     "assemblyscript": "^0.9.4",
