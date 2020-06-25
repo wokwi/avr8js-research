@@ -1,20 +1,20 @@
 {
   "scripts": {
-    "asbuild:untouched": "asc assembly/index.ts -b build/untouched.wasm -t build/untouched.wat --validate --sourceMap --debug",
-    "asbuild:optimized": "asc assembly/index.ts -b build/optimized.wasm -t build/optimized.wat --validate --sourceMap --optimize",
+    "asbuild:untouched": "asc assembly/index.ts -b build/untouched.wasm -t build/untouched.wat --sourceMap --debug",
+    "asbuild:optimized": "asc assembly/index.ts -b build/optimized.wasm -t build/optimized.wat --sourceMap --optimize",
     "asbuild": "npm run asbuild:untouched && npm run asbuild:optimized",
     "asbuild:watch": "onchange -i 'assembly/*' -- npm run asbuild",
     "tsc": "tsc",
     "test": "node tests"
   },
   "dependencies": {
-    "@assemblyscript/loader": "^0.9.4"
+    "@assemblyscript/loader": "^0.10.1"
   },
   "devDependencies": {
-    "@types/node": "^13.13.1",
-    "typescript": "^3.8.3",
-    "assemblyscript": "^0.9.4",
+    "@types/node": "^13.13.12",
+    "typescript": "^3.9.5",
+    "assemblyscript": "^0.12.3",
     "benchmark": "^2.1.4",
-    "onchange": "^6.1.1"
+    "onchange": "^7.0.2"
   }
 }

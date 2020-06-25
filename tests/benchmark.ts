@@ -5,6 +5,7 @@ const Suite = Benchmark.Suite
 export function run() {
     console.log("===", "Start benchmarking...", "===")
     simpleAddComparison()
+    runAvrAssembly()
     console.log("===", "Benchmarking finished ", "===")
 }
 
@@ -21,10 +22,10 @@ function simpleAddComparison() {
     }).add('JavaScript loop - Assembly add', () => {
         let res = 0;
         for (let i = start; i < end; ++i) {
-            res = assembly.add(res, i)
+            res = assembly.exports.add(res, i)
         }
     }).add('Assembly loop - Assembly add', () => {
-        assembly.addLoop(start, end)
+        assembly.exports.addLoop(start, end)
     }).on('cycle', event => {
         console.log(String(event.target))
     }).on('complete', event => {
@@ -44,10 +45,14 @@ function logDiff(target1, target2) {
 }
 
 function runAvrAssembly() {
-    console.log("=", "Run assembly AVR instruction", "=")
+    console.log("=", "Run web assembly AVR instruction", "=")
     const opcode = 0x2400
     //FIXME WebAssembly memory error in cpu
     //TODO Add correct opcode
-    assembly.runAddInstruction(opcode)
+    assembly.exports.setupCPU()
+    const sreg1 = assembly.exports.getSREG()
+    assembly.exports.runAddInstruction(opcode)
+    const sreg2 = assembly.exports.getSREG()
+    console.log("SREG1, SREG2:", sreg1, sreg2)
     console.log("=", "Assembly AVR instruction finished", "=")
 }

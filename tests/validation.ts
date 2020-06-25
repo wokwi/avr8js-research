@@ -9,5 +9,5 @@ export function run() {
 
 function assertAssemblyAdd() {
     console.log("Validate: assembly add")
-    assert.equal(was.add(1, 2), 3);
+    assert.strictEqual(was.exports.add(1, 2), 3);
 }
