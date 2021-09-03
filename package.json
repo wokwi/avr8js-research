@@ -8,13 +8,14 @@
     "test": "node tests"
   },
   "dependencies": {
-    "@assemblyscript/loader": "^0.10.1"
+    "@assemblyscript/loader": "^0.19.11",
+    "avr8js": "^0.17.0"
   },
   "devDependencies": {
-    "@types/node": "^13.13.12",
-    "typescript": "^3.9.5",
-    "assemblyscript": "^0.12.3",
+    "@types/node": "^13.13.52",
+    "assemblyscript": "^0.12.5",
     "benchmark": "^2.1.4",
-    "onchange": "^7.0.2"
+    "onchange": "^7.1.0",
+    "typescript": "^3.9.10"
   }
 }
