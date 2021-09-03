@@ -2,6 +2,8 @@
 
 import {CPU} from './cpu/cpu'
 import {ADD} from "./cpu/testInstruction";
+import {compileInstruction} from "./cpu/instructions";
+import {avrInstruction} from './cpu/instruction-raw';
 
 let cpu: CPU;
 
@@ -28,4 +30,13 @@ export function getSREG(): u8 {
 
 export function runAddInstruction(opcode: u16): void {
     ADD(cpu, opcode)
+}
+
+export function testCompile() : string{
+    return compileInstruction(0,0,false)
+}
+
+export function testAVRInstruction() :void {
+    setupCPU()
+    avrInstruction(cpu)
 }
