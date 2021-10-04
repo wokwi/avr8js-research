@@ -1,19 +1,23 @@
 {
   "scripts": {
-    "asbuild:untouched": "asc assembly/index.ts -b build/untouched.wasm -t build/untouched.wat --sourceMap --debug",
-    "asbuild:optimized": "asc assembly/index.ts -b build/optimized.wasm -t build/optimized.wat --sourceMap --optimize",
+    "asbuild:untouched": "asc assembly/index.ts -b build/untouched.wasm -t build/untouched.wat --sourceMap --debug --exportRuntime",
+    "asbuild:optimized": "asc assembly/index.ts -b build/optimized.wasm -t build/optimized.wat --sourceMap --optimize --exportRuntime",
     "asbuild": "npm run asbuild:untouched && npm run asbuild:optimized",
     "asbuild:watch": "onchange -i 'assembly/*' -- npm run asbuild",
     "tsc": "tsc",
-    "test": "node tests"
+    "test": "node tests",
+    "arduino:compile": "node compile"
   },
   "dependencies": {
-    "@assemblyscript/loader": "^0.19.11",
-    "avr8js": "^0.17.0"
+    "@assemblyscript/loader": "^0.19.17",
+    "avr8js": "^0.18.1",
+    "intel-hex": "^0.1.2",
+    "node-fetch-commonjs": "^3.0.0",
+    "web-streams-polyfill": "^3.1.1"
   },
   "devDependencies": {
-    "@types/node": "^13.13.52",
-    "assemblyscript": "^0.12.5",
+    "@types/node": "^14.17.20",
+    "assemblyscript": "^0.19.17",
     "benchmark": "^2.1.4",
     "onchange": "^7.1.0",
     "typescript": "^3.9.10"
