@@ -40,3 +40,10 @@ export function testAVRInstruction() :void {
     setupCPU()
     avrInstruction(cpu)
 }
+
+export function runProgram(program: ArrayBuffer) : void {
+    const cpu = new CPU(Uint16Array.wrap(program))
+    for (let i = 0; i < 1000; i++) {
+        avrInstruction(cpu)
+    }
+}
