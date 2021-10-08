@@ -51,7 +51,6 @@ function runAvrAssembly() {
     //TODO Add correct opcode
     assembly.exports.setupCPU()
     const sreg1 = assembly.exports.getSREG()
-    assembly.exports.runAddInstruction(opcode)
     const sreg2 = assembly.exports.getSREG()
     console.log("SREG1, SREG2:", sreg1, sreg2)
     console.log("=", "Assembly AVR instruction finished", "=")

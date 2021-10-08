@@ -5,7 +5,6 @@ export function run() {
     console.log("===", "Run validations...", "===")
     assertAssemblyAdd()
     assertCompile()
-    assertAVRInstruction()
     console.log("===", "Validations successful", "===")
 }
 
@@ -19,9 +18,4 @@ function assertCompile() {
     const a: string = was.exports.__getString(was.exports.testCompile());
     console.log("Type of " + typeof a)
     console.log("Value " + a)
-}
-
-function assertAVRInstruction() {
-    console.log("Validate: AVR instruction")
-    was.exports.testAVRInstruction()
 }
