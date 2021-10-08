@@ -33,18 +33,16 @@ const registerSpace: u64 = 0x100;
 //     writeData(addr: u16, value: u8): void;
 // }
 
-//removed '| void' for assembly type safety
+//removed '| void' for assembly script type safety
 export type CPUMemoryHook = (value: u8, oldValue: u8, addr: u16) => boolean;
 
-export class CPUMemoryHooks {
-    [key: number]: CPUMemoryHook;
-}
+//Extends map to fix missing dictionary support
+export class CPUMemoryHooks extends Map<u32, CPUMemoryHook> {}
 
 export type CPUMemoryReadHook = (addr: u16) => u8;
 
-export class CPUMemoryReadHooks {
-    [key: number]: CPUMemoryReadHook;
-}
+//Extends map to fix missing dictionary support
+export class CPUMemoryReadHooks extends Map<u32, CPUMemoryReadHook> {}
 
 export class CPU {
 
@@ -52,8 +50,8 @@ export class CPU {
     readonly data16: Uint16Array = Uint16Array.wrap(this.data.buffer);
     readonly dataView: DataView = new DataView(this.data.buffer);
     readonly progBytes: Uint8Array;
-    readonly readHooks: CPUMemoryReadHooks = new CPUMemoryReadHooks()
-    readonly writeHooks: CPUMemoryHooks = new CPUMemoryHooks()
+    readonly readHooks: CPUMemoryReadHooks = new CPUMemoryReadHooks();
+    readonly writeHooks: CPUMemoryHooks = new CPUMemoryHooks();
     readonly pc22Bits: bool = this.progBytes.length > 0x20000;
 
     // readonly data: Uint8Array = new Uint8Array(<i32>(this.sramBytes + registerSpace));
@@ -83,10 +81,19 @@ export class CPU {
     }
 
     readData(addr: u16): u8 {
+        if (addr >= 32 && this.readHooks.has(addr)) {
+            return this.readHooks.get(addr)(addr);
+        }
         return this.data[addr];
     }
 
     writeData(addr: u16, value: u8): void {
+        if (this.writeHooks.has(addr)) {
+            const hook = this.writeHooks.get(addr);
+            if (hook(value, this.data[addr], addr)) {
+                return;
+            }
+        }
         this.data[addr] = value;
     }
 
