@@ -7,7 +7,8 @@
     "tsc": "tsc",
     "test": "node tests",
     "arduino:compile": "node compile",
-    "compile&test" : "npm run asbuild:untouched && npm run test"
+    "compile&test" : "npm run asbuild:untouched && npm run test",
+    "ino:compile&test": "npm run arduino:compile && npm run test"
   },
   "dependencies": {
     "@assemblyscript/loader": "^0.19.17",

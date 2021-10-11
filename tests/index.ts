@@ -1,10 +1,11 @@
 import * as validation from './validation'
 import * as bm from './benchmark'
-import {runTest} from "./cpu-test";
+import {runTest, runWrapperTest} from "./cpu-test";
 
 console.log("=====", "Start WebAssembly tests...", "=====")
 validation.run()
 bm.run()
-runTest()
+runTest();
+runWrapperTest();
 
 console.log("=====", 'WebAssembly tests finished ✅', "=====")
