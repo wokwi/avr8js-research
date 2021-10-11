@@ -5,7 +5,6 @@ const Suite = Benchmark.Suite
 export function run() {
     console.log("===", "Start benchmarking...", "===")
     simpleAddComparison()
-    runAvrAssembly()
     console.log("===", "Benchmarking finished ", "===")
 }
 
@@ -42,16 +41,4 @@ function logDiff(target1, target2) {
     const slower = target1.hz < target2.hz ? target1 : target2;
     const diff = (faster.hz - slower.hz) / slower.hz * 100;
     console.log(`'${faster.name}' is ~${diff.toFixed(2)}% faster than '${slower.name}'.`);
-}
-
-function runAvrAssembly() {
-    console.log("=", "Run web assembly AVR instruction", "=")
-    const opcode = 0x2400
-    //FIXME WebAssembly memory error in cpu
-    //TODO Add correct opcode
-    assembly.exports.setupCPU()
-    const sreg1 = assembly.exports.getSREG()
-    const sreg2 = assembly.exports.getSREG()
-    console.log("SREG1, SREG2:", sreg1, sreg2)
-    console.log("=", "Assembly AVR instruction finished", "=")
 }
