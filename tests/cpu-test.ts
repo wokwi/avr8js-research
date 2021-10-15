@@ -18,15 +18,15 @@ export function runTest() {
         .then((cpuPtr) => {
 
             //Add hook
-            addWriteHook(cpuPtr, 0x23, (value, oldValue, addr) => {
+            addWriteHook(cpuPtr, 0x23, (value, oldValue, addr, mask) => {
                 console.log('Got callback from addr: ' + addr + ' [' + value + ',' + oldValue + ']');
                 return false
             })
-            addWriteHook(cpuPtr, 0x24, (value, oldValue, addr) => {
+            addWriteHook(cpuPtr, 0x24, (value, oldValue, addr, mask) => {
                 console.log('Got callback from addr: ' + addr + ' [' + value + ',' + oldValue + ']');
                 return false
             })
-            addWriteHook(cpuPtr, 0x25, (value, oldValue, addr) => {
+            addWriteHook(cpuPtr, 0x25, (value, oldValue, addr, mask) => {
                 console.log('Got callback from addr: ' + addr + ' [' + value + ',' + oldValue + ']');
                 return false
             })
@@ -36,7 +36,7 @@ export function runTest() {
             //
             // console.log('isCPU: ' + isCPU);
             //
-            // const testInstance = assembly.Test.wrap(assembly.newTestInstance());
+            // const testInstance = assembly.Class.wrap(assembly.newTestInstance());
             // console.log(assembly.__getString(testInstance.str));
 
             logState(cpuPtr)
@@ -134,7 +134,7 @@ export function getData(cpuPtr: number): Uint8Array {
     return assembly.__getUint8ArrayView(ptr);
 }
 
-export function addWriteHook(cpuPtr: number, addr: number, hook: (value: number, oldValue: number, addr: number) => boolean) {
+export function addWriteHook(cpuPtr: number, addr: number, hook: (value: number, oldValue: number, addr: number, mask: number) => boolean) {
     writeHooks[addr] = hook
     avr8js.addWriteHook(cpuPtr, addr)
 }
