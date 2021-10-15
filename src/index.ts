@@ -10,8 +10,8 @@ export const was: ResultObject & { exports: ASUtil & typeof MyModule } = loader.
     /* imports */
     index: {
         log: (ptr: number) => console.log('WASM-Log: ' + was.exports.__getString(ptr)),
-        callWriteHook(value: number, oldValue: number, addr: number): boolean {
-            return writeHooks[addr](value, oldValue, addr)
+        callWriteHook(value: number, oldValue: number, addr: number, mask : number): boolean {
+            return writeHooks[addr](value, oldValue, addr, mask)
         }
     }
 })

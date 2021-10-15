@@ -11,12 +11,12 @@ export class CPU {
     readonly data: Uint8Array;
     readonly dataView: DataView;
 
-    constructor(private wasm: ResultObject & { exports: ASUtil & typeof MyModule }, program: Uint16Array) {
+    constructor(private wasm: ResultObject & { exports: ASUtil & typeof MyModule }, program: Uint16Array, sramBytes : u32 = 8192) {
         this.loader = wasm.exports
         this.avr8js = this.loader.avr8js
 
         const bufRef = this.loader.__newArrayBuffer(program.buffer);
-        this.ptr = this.avr8js.newCPU(bufRef)
+        this.ptr = this.avr8js.newCPU(bufRef, sramBytes)
         this.data = this.loader.__getUint8ArrayView(this.avr8js.getData(this.ptr))
         this.dataView = new DataView(this.data.buffer)
     }
@@ -27,6 +27,10 @@ export class CPU {
 
     get cycles(): u32 {
         return this.avr8js.getCycles(this.ptr)
+    }
+
+    set cycles(cycles : u32) {
+
     }
 
     reset(): void {
@@ -77,11 +81,11 @@ export class CPU {
 
     }
 
-    addClockEvent(callback: AVRClockEventCallback, cycles: u64): AVRClockEventCallback {
+    addClockEvent(callback: AVRClockEventCallback, cycles: u32): AVRClockEventCallback {
         return null
     }
 
-    updateClockEvent(callback: AVRClockEventCallback, cycles: u64): boolean {
+    updateClockEvent(callback: AVRClockEventCallback, cycles: u32): boolean {
         return false
     }
 
