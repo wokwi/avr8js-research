@@ -1,6 +1,6 @@
 import {CPU} from "./v2/cpu/cpu";
 import {avrInstruction} from "./v2/cpu/instruction";
-import {log, callWriteHook} from './index';
+import {callWriteHook} from './index';
 
 export namespace avr8js {
 
@@ -8,8 +8,8 @@ export namespace avr8js {
         return idof<CPU>();
     }
 
-    export function newCPU(program: ArrayBuffer): CPU {
-        return new CPU(Uint16Array.wrap(program))
+    export function newCPU(program: ArrayBuffer, sramBytes: u32 = 8192): CPU {
+        return new CPU(Uint16Array.wrap(program), sramBytes)
     }
 
     export function runProgram(cpu: CPU, cycles: u32 = 50000): void {
@@ -30,11 +30,11 @@ export namespace avr8js {
         cpu.reset()
     }
 
-    export function getSP(cpu: CPU) : u16 {
+    export function getSP(cpu: CPU): u16 {
         return cpu.SP
     }
 
-    export function setSP(cpu : CPU, value: u16) : void {
+    export function setSP(cpu: CPU, value: u16): void {
         cpu.SP = value
     }
 
@@ -55,9 +55,6 @@ export namespace avr8js {
     }
 
     export function addWriteHook(cpu: CPU, addr: u32): void {
-        cpu.writeHooks.set(addr, (value: u8, oldValue: u8, addr1: u16) => {
-            log('addr: ' + addr1.toString() + ' [' + value.toString() + ',' + oldValue.toString() + ']');
-            return callWriteHook(value, oldValue, addr1);
-        });
+        cpu.writeHooks.set(addr, callWriteHook);
     }
 }

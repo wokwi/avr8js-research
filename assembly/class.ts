@@ -1,4 +1,4 @@
-export class Test {
+export class Class {
     constructor(public str : string) {
     }
 
