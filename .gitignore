@@ -236,4 +236,5 @@ dist
 build/
 src/*.js
 tests/*.js
+compile/*.js
 # End of manual exclusions
