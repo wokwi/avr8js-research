@@ -49,11 +49,11 @@ export function runTest() {
 
 export function runWrapperTest() {
     loadHexBytes("compile/program.hex")
-    // new Promise((resolve, reject) => {
-    //     const program = new Uint16Array(16384);
-    //     loadBlink(program);
-    //     resolve(program)
-    // })
+        // new Promise((resolve, reject) => {
+        //     const program = new Uint16Array(16384);
+        //     loadBlink(program);
+        //     resolve(program)
+        // })
         .then((program: Uint16Array) => new CPU(was, program))
         .then((cpu: CPU) => {
             cpu.printState();
@@ -65,9 +65,12 @@ export function runWrapperTest() {
 
 function logState(cpuPtr: number) {
     const data = getData(cpuPtr);
-    console.log('data: ' + data.reduce((value, next) => value + next))
-    console.log('PC: ' + avr8js.getPC(cpuPtr))
-    console.log('cycles: ' + avr8js.getCycles(cpuPtr))
+    const state = {
+        data: data.reduce((value, next) => value + next),
+        PC: avr8js.getPC(cpuPtr),
+        cycles: avr8js.getCycles(cpuPtr)
+    }
+    console.table(state)
 }
 
 function findDifferences(arr1: Uint32Array, arr2: Uint32Array): Uint32Array {

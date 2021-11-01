@@ -98,11 +98,14 @@ export class CPU {
     }
 
     printState() {
-        console.log('data: ' + this.data.reduce((value, next) => value + next))
-        console.log('PC: ' + this.pc)
-        console.log('cycles: ' + this.cycles)
-        console.log('SREG: ' + this.SREG)
-        console.log('SP: ' + this.SP)
+        const state = {
+            data: this.data.reduce((value, next) => value + next),
+            PC: this.pc,
+            cycles: this.cycles,
+            SREG: this.SREG,
+            SP: this.SP
+        }
+        console.table(state)
     }
 
 }
