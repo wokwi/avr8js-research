@@ -2,6 +2,7 @@ import {was, writeHooks} from "../src";
 import {loadBlink} from "../compile/programs";
 import {CPU} from '../src/cpu-wrapper';
 import {loadHexBytes} from "../compile/compile";
+import {avrInstruction, CPU as CPU2} from "avr8js";
 
 const assembly = was.exports
 const avr8js = assembly.avr8js
@@ -30,13 +31,13 @@ export function runTest() {
                 return false
             })
 
-            const id = avr8js.getCPUClassId();
-            const isCPU = assembly.__instanceof(cpuPtr, id);
-
-            console.log('isCPU: ' + isCPU);
-
-            const testInstance = assembly.Test.wrap(assembly.newTestInstance());
-            console.log(assembly.__getString(testInstance.str));
+            // const id = avr8js.getCPUClassId();
+            // const isCPU = assembly.__instanceof(cpuPtr, id);
+            //
+            // console.log('isCPU: ' + isCPU);
+            //
+            // const testInstance = assembly.Test.wrap(assembly.newTestInstance());
+            // console.log(assembly.__getString(testInstance.str));
 
             logState(cpuPtr)
             runProgram(cpuPtr, 1000);
@@ -47,20 +48,57 @@ export function runTest() {
         .then(() => console.log('Finished program.'), (err) => console.error(err));
 }
 
-export function runWrapperTest() {
+export function testWrapper() {
     loadHexBytes("compile/program.hex")
         // new Promise((resolve, reject) => {
         //     const program = new Uint16Array(16384);
         //     loadBlink(program);
         //     resolve(program)
         // })
-        .then((program: Uint16Array) => new CPU(was, program))
-        .then((cpu: CPU) => {
-            cpu.printState();
-            cpu.runProgram(2000);
-            cpu.printState();
+        .then((program: Uint16Array) => runWrapper(program, 2000))
+        .then(() => console.log('Finished program.'), (err) => console.error(err));
+}
+
+export function compareCPUs() {
+    loadHexBytes("compile/program.hex")
+        // new Promise((resolve, reject) => {
+        //     const program = new Uint16Array(16384);
+        //     loadBlink(program);
+        //     resolve(program)
+        // })
+        .then((program: Uint16Array) => {
+            const cycles = 2000
+            runWrapper(program, cycles)
+            runAvr(program, cycles)
         })
         .then(() => console.log('Finished program.'), (err) => console.error(err));
+}
+
+function runWrapper(program: Uint16Array, cycles: number = 2000) {
+    const cpu = new CPU(was, program)
+    cpu.printState();
+    cpu.runProgram(cycles);
+    cpu.printState();
+}
+
+function runAvr(program: Uint16Array, cycles: number = 2000) {
+    const cpu = new CPU2(program)
+    logAvrState(cpu)
+    for (let i = 0; i < 2000; i++) {
+        avrInstruction(cpu)
+    }
+    logAvrState(cpu)
+}
+
+function logAvrState(cpu: CPU2) {
+    const state = {
+        data: cpu.data.reduce((value, next) => value + next),
+        PC: cpu.pc,
+        cycles: cpu.cycles,
+        SREG: cpu.SREG,
+        SP: cpu.SP
+    }
+    console.table(state)
 }
 
 function logState(cpuPtr: number) {
