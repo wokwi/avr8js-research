@@ -84,7 +84,7 @@ function runWrapper(program: Uint16Array, cycles: number = 2000) {
 function runAvr(program: Uint16Array, cycles: number = 2000) {
     const cpu = new CPU2(program)
     logAvrState(cpu)
-    for (let i = 0; i < 2000; i++) {
+    for (let i = 0; i < cycles; i++) {
         avrInstruction(cpu)
     }
     logAvrState(cpu)
