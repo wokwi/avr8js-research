@@ -7,6 +7,7 @@
  */
 
 import {CPU as ICPU} from './cpu';
+import {log} from "../../index";
 
 function isTwoWordInstruction(opcode: u16): boolean {
     return (
@@ -23,6 +24,8 @@ function isTwoWordInstruction(opcode: u16): boolean {
 
 export function avrInstruction(cpu: ICPU): void {
     const opcode: u16 = cpu.progMem[cpu.pc];
+
+    log('Opcode: ' + opcode.toString(16))
 
     /* ADC, 0001 11rd dddd rrrr */
     if ((opcode & 0xfc00) === 0x1c00) {
@@ -578,6 +581,7 @@ export function avrInstruction(cpu: ICPU): void {
 
     /* POP, 1001 000d dddd 1111 */
     if ((opcode & 0xfe0f) === 0x900f) {
+        log('POP')
         const value = cpu.dataView.getUint16(93, true) + 1;
         cpu.dataView.setUint16(93, value, true);
         cpu.data[(opcode & 0x1f0) >> 4] = cpu.data[value];
@@ -906,6 +910,9 @@ export function avrInstruction(cpu: ICPU): void {
         cpu.data[r] = val2;
     }
 
-    cpu.pc = (cpu.pc + 1) % cpu.progMem.length;
+    trace(cpu.pc.toString())
+    trace(cpu.progMem.length.toString())
+    cpu.pc = (cpu.pc + 1) % <u32>cpu.progMem.length;
+    trace(cpu.pc.toString())
     cpu.cycles++;
 }
