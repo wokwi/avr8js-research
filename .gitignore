@@ -232,7 +232,8 @@ dist
 
 # End of https://www.toptal.com/developers/gitignore/api/node,intellij+all,visualstudiocode
 
-# Start of manual exclusions #
+# Start of manual exclusions
+assembly/**/*.js
 build/
 src/*.js
 tests/*.js
