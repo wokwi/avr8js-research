@@ -67,8 +67,10 @@ export function compareCPUs() {
         //     resolve(program)
         // })
         .then((program: Uint16Array) => {
-            const cycles = 2000
+            const cycles = 14
+            console.log('Run for ' + cycles + ' cycles...')
             runWrapper(program, cycles)
+            console.log('======')
             runAvr(program, cycles)
         })
         .then(() => console.log('Finished program.'), (err) => console.error(err));
@@ -76,9 +78,9 @@ export function compareCPUs() {
 
 function runWrapper(program: Uint16Array, cycles: number = 2000) {
     const cpu = new CPU(was, program)
-    cpu.printState();
+    logAvrState(cpu)
     cpu.runProgram(cycles);
-    cpu.printState();
+    logAvrState(cpu);
 }
 
 function runAvr(program: Uint16Array, cycles: number = 2000) {
@@ -90,13 +92,15 @@ function runAvr(program: Uint16Array, cycles: number = 2000) {
     logAvrState(cpu)
 }
 
-function logAvrState(cpu: CPU2) {
+function logAvrState(cpu: CPU | CPU2) {
     const state = {
         data: cpu.data.reduce((value, next) => value + next),
         PC: cpu.pc,
+        "PC (HEX)": cpu.pc.toString(16),
         cycles: cpu.cycles,
         SREG: cpu.SREG,
-        SP: cpu.SP
+        SP: cpu.SP,
+        progMem : cpu.progMem.reduce((value, next) => value + next)
     }
     console.table(state)
 }
