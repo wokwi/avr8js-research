@@ -18,6 +18,10 @@ export namespace avr8js {
         }
     }
 
+    export function getProgMem(cpu: CPU) : Uint16Array {
+        return cpu.progMem
+    }
+
     export function readData(cpu: CPU, addr: u16): u8 {
         return cpu.readData(addr);
     }

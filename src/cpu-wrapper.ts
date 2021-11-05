@@ -21,6 +21,11 @@ export class CPU {
         this.dataView = new DataView(this.data.buffer)
     }
 
+    get progMem(): Uint16Array {
+        const progPtr = this.avr8js.getProgMem(this.ptr);
+        return this.loader.__getUint16ArrayView(progPtr)
+    }
+
     get pc(): u32 {
         return this.avr8js.getPC(this.ptr)
     }
@@ -99,17 +104,6 @@ export class CPU {
 
     runProgram(cycles = 5000) {
         this.avr8js.runProgram(this.ptr, cycles);
-    }
-
-    printState() {
-        const state = {
-            data: this.data.reduce((value, next) => value + next),
-            PC: this.pc,
-            cycles: this.cycles,
-            SREG: this.SREG,
-            SP: this.SP
-        }
-        console.table(state)
     }
 
 }
