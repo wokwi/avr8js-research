@@ -133,6 +133,7 @@ export function avrInstruction(cpu: ICPU): void {
             trace(((opcode & 0x1f8) >> 3).toString())
             trace((opcode & 0x200 ? 0x40 : 0).toString())
             // Result is getting wrong here
+            // Compare with result of https://webassembly.studio/?f=hn96d3m7nt7
             trace((((opcode & 0x1f8) >> 3) - (opcode & 0x200 ? 0x40 : 0)).toString())
             const res : u32 = cpu.pc + (((opcode & 0x1f8) >> 3) - (opcode & 0x200 ? 0x40 : 0));
             trace('Compute: ' + res.toString())
