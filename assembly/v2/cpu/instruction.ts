@@ -130,6 +130,10 @@ export function avrInstruction(cpu: ICPU): void {
         trace('SREG: ' + cpu.data[95].toString())
         if (!(cpu.data[95] & (1 << <u8>(opcode & 7)))) {
             trace('BRBC: ' + cpu.pc.toString())
+            trace(((opcode & 0x1f8) >> 3).toString())
+            trace((opcode & 0x200 ? 0x40 : 0).toString())
+            // Result is getting wrong here
+            trace((((opcode & 0x1f8) >> 3) - (opcode & 0x200 ? 0x40 : 0)).toString())
             const res : u32 = cpu.pc + (((opcode & 0x1f8) >> 3) - (opcode & 0x200 ? 0x40 : 0));
             trace('Compute: ' + res.toString())
             //FIXME error lies here. Should return 61 and not 65597.
