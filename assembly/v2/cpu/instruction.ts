@@ -25,7 +25,7 @@ function isTwoWordInstruction(opcode: u16): boolean {
 export function avrInstruction(cpu: ICPU): void {
     const opcode: u16 = cpu.progMem[cpu.pc];
 
-    log('Opcode: ' + opcode.toString(16))
+    log('Opcode: ' + opcode.toString() + ' / ' + opcode.toString(16))
 
     /* ADC, 0001 11rd dddd rrrr */
     if ((opcode & 0xfc00) === 0x1c00) {
@@ -126,8 +126,15 @@ export function avrInstruction(cpu: ICPU): void {
 
     /* BRBC, 1111 01kk kkkk ksss */
     if ((opcode & 0xfc00) === 0xf400) {
-        if (!(cpu.data[95] & (1 << (<u8>opcode & 7)))) {
+        trace('BRBC')
+        trace('SREG: ' + cpu.data[95].toString())
+        if (!(cpu.data[95] & (1 << <u8>(opcode & 7)))) {
+            trace('BRBC: ' + cpu.pc.toString())
+            const res : u32 = cpu.pc + (((opcode & 0x1f8) >> 3) - (opcode & 0x200 ? 0x40 : 0));
+            trace('Compute: ' + res.toString())
+            //FIXME error lies here. Should return 61 and not 65597.
             cpu.pc = cpu.pc + (((opcode & 0x1f8) >> 3) - (opcode & 0x200 ? 0x40 : 0));
+            trace('BRBC: ' + cpu.pc.toString())
             cpu.cycles++;
         }
     }
@@ -201,6 +208,7 @@ export function avrInstruction(cpu: ICPU): void {
 
     /* CPC, 0000 01rd dddd rrrr */
     if ((opcode & 0xfc00) === 0x400) {
+        trace('CPC')
         const arg1 = cpu.data[(opcode & 0x1f0) >> 4];
         const arg2 = cpu.data[(opcode & 0xf) | ((opcode & 0x200) >> 5)];
         let sreg = cpu.data[95];
@@ -215,6 +223,7 @@ export function avrInstruction(cpu: ICPU): void {
 
     /* CPI, 0011 KKKK dddd KKKK */
     if ((opcode & 0xf000) === 0x3000) {
+        trace('CPI')
         const arg1 = cpu.data[((opcode & 0xf0) >> 4) + 16];
         const arg2 = (opcode & 0xf) | ((opcode & 0xf00) >> 4);
         const r = arg1 - arg2;
