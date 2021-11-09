@@ -126,19 +126,21 @@ export function avrInstruction(cpu: ICPU): void {
 
     /* BRBC, 1111 01kk kkkk ksss */
     if ((opcode & 0xfc00) === 0xf400) {
-        trace('BRBC')
+        trace('Enter: BRBC')
         trace('SREG: ' + cpu.data[95].toString())
         if (!(cpu.data[95] & (1 << <u8>(opcode & 7)))) {
             trace('BRBC: ' + cpu.pc.toString())
-            trace(((opcode & 0x1f8) >> 3).toString())
-            trace((opcode & 0x200 ? 0x40 : 0).toString())
+            const a = ((opcode & 0x1f8) >> 3)
+            const b = (opcode & 0x200 ? 0x40 : 0)
+            trace(a.toString())
+            trace(b.toString())
             // Result is getting wrong here
             // Compare with result of https://webassembly.studio/?f=hn96d3m7nt7
-            trace((((opcode & 0x1f8) >> 3) - (opcode & 0x200 ? 0x40 : 0)).toString())
-            const res : u32 = cpu.pc + (((opcode & 0x1f8) >> 3) - (opcode & 0x200 ? 0x40 : 0));
+            trace((b-a).toString())
+            const res : u32 = cpu.pc + a-b;
             trace('Compute: ' + res.toString())
             //FIXME error lies here. Should return 61 and not 65597.
-            cpu.pc = cpu.pc + (((opcode & 0x1f8) >> 3) - (opcode & 0x200 ? 0x40 : 0));
+            cpu.pc = cpu.pc + (((opcode as u32 & 0x1f8) >> 3) - (opcode & 0x200 ? 0x40 : 0));
             trace('BRBC: ' + cpu.pc.toString())
             cpu.cycles++;
         }
