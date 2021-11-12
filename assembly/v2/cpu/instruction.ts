@@ -7,7 +7,6 @@
  */
 
 import {CPU as ICPU} from './cpu';
-import {log} from "../../index";
 
 function isTwoWordInstruction(opcode: u16): boolean {
     return (
@@ -23,9 +22,7 @@ function isTwoWordInstruction(opcode: u16): boolean {
 }
 
 export function avrInstruction(cpu: ICPU): void {
-    const opcode: u16 = cpu.progMem[cpu.pc];
-
-    log('Opcode: ' + opcode.toString() + ' / ' + opcode.toString(16))
+    const opcode: u32 = cpu.progMem[cpu.pc];
 
     /* ADC, 0001 11rd dddd rrrr */
     if ((opcode & 0xfc00) === 0x1c00) {
@@ -65,7 +62,7 @@ export function avrInstruction(cpu: ICPU): void {
         const addr = 2 * ((opcode & 0x30) >> 4) + 24;
         const value = cpu.dataView.getUint16(addr, true);
         const R = (value + ((opcode & 0xf) | ((opcode & 0xc0) >> 2))) & 0xffff;
-        cpu.dataView.setUint16(addr, R, true);
+        cpu.dataView.setUint16(addr, <u16>R, true);
         let sreg = cpu.data[95] & 0xe0;
         sreg |= R ? 0 : 2;
         sreg |= 0x8000 & R ? 4 : 0;
@@ -126,22 +123,8 @@ export function avrInstruction(cpu: ICPU): void {
 
     /* BRBC, 1111 01kk kkkk ksss */
     if ((opcode & 0xfc00) === 0xf400) {
-        trace('Enter: BRBC')
-        trace('SREG: ' + cpu.data[95].toString())
         if (!(cpu.data[95] & (1 << <u8>(opcode & 7)))) {
-            trace('BRBC: ' + cpu.pc.toString())
-            const a = ((opcode & 0x1f8) >> 3)
-            const b = (opcode & 0x200 ? 0x40 : 0)
-            trace(a.toString())
-            trace(b.toString())
-            // Result is getting wrong here
-            // Compare with result of https://webassembly.studio/?f=hn96d3m7nt7
-            trace((b-a).toString())
-            const res : u32 = cpu.pc + a-b;
-            trace('Compute: ' + res.toString())
-            //FIXME error lies here. Should return 61 and not 65597.
-            cpu.pc = cpu.pc + (((opcode as u32 & 0x1f8) >> 3) - (opcode & 0x200 ? 0x40 : 0));
-            trace('BRBC: ' + cpu.pc.toString())
+            cpu.pc = cpu.pc + (((opcode & 0x1f8) >> 3) - (opcode & 0x200 ? 0x40 : 0));
             cpu.cycles++;
         }
     }
@@ -180,10 +163,10 @@ export function avrInstruction(cpu: ICPU): void {
 
     /* CBI, 1001 1000 AAAA Abbb */
     if ((opcode & 0xff00) === 0x9800) {
-        const A = opcode & 0xf8;
-        const b = opcode & 7;
+        const A = opcode as u16 & 0xf8;
+        const b = opcode as u8 & 7;
         const R = cpu.readData((A >> 3) + 32);
-        cpu.writeData((A >> 3) + 32, R & ~(1 << <u8>b));
+        cpu.writeData((A >> 3) + 32, R & ~(1 << b));
     }
 
     /* COM, 1001 010d dddd 0000 */
@@ -215,7 +198,6 @@ export function avrInstruction(cpu: ICPU): void {
 
     /* CPC, 0000 01rd dddd rrrr */
     if ((opcode & 0xfc00) === 0x400) {
-        trace('CPC')
         const arg1 = cpu.data[(opcode & 0x1f0) >> 4];
         const arg2 = cpu.data[(opcode & 0xf) | ((opcode & 0x200) >> 5)];
         let sreg = cpu.data[95];
@@ -230,7 +212,6 @@ export function avrInstruction(cpu: ICPU): void {
 
     /* CPI, 0011 KKKK dddd KKKK */
     if ((opcode & 0xf000) === 0x3000) {
-        trace('CPI')
         const arg1 = cpu.data[((opcode & 0xf0) >> 4) + 16];
         const arg2 = (opcode & 0xf) | ((opcode & 0xf00) >> 4);
         const r = arg1 - arg2;
@@ -327,7 +308,7 @@ export function avrInstruction(cpu: ICPU): void {
 
     /* IN, 1011 0AAd dddd AAAA */
     if ((opcode & 0xf800) === 0xb000) {
-        const i = cpu.readData(((opcode & 0xf) | ((opcode & 0x600) >> 5)) + 32);
+        const i = cpu.readData(((opcode & 0xf) | ((opcode & 0x600) >> 5)) as u16 + 32);
         cpu.data[(opcode & 0x1f0) >> 4] = i;
     }
 
@@ -438,7 +419,7 @@ export function avrInstruction(cpu: ICPU): void {
     ) {
         cpu.data[(opcode & 0x1f0) >> 4] = cpu.readData(
             cpu.dataView.getUint16(28, true) +
-            ((opcode & 7) | ((opcode & 0xc00) >> 7) | ((opcode & 0x2000) >> 8))
+            ((opcode & 7) | ((opcode & 0xc00) >> 7) | ((opcode & 0x2000) >> 8)) as u16
         );
         cpu.cycles += 2;
     }
@@ -471,7 +452,7 @@ export function avrInstruction(cpu: ICPU): void {
     ) {
         cpu.data[(opcode & 0x1f0) >> 4] = cpu.readData(
             cpu.dataView.getUint16(30, true) +
-            ((opcode & 7) | ((opcode & 0xc00) >> 7) | ((opcode & 0x2000) >> 8))
+            ((opcode & 7) | ((opcode & 0xc00) >> 7) | ((opcode & 0x2000) >> 8)) as u16
         );
         cpu.cycles += 2;
     }
@@ -592,12 +573,11 @@ export function avrInstruction(cpu: ICPU): void {
 
     /* OUT, 1011 1AAr rrrr AAAA */
     if ((opcode & 0xf800) === 0xb800) {
-        cpu.writeData(((opcode & 0xf) | ((opcode & 0x600) >> 5)) + 32, cpu.data[(opcode & 0x1f0) >> 4]);
+        cpu.writeData(((opcode & 0xf) | ((opcode & 0x600) >> 5)) as u16 + 32, cpu.data[(opcode & 0x1f0) >> 4]);
     }
 
     /* POP, 1001 000d dddd 1111 */
     if ((opcode & 0xfe0f) === 0x900f) {
-        log('POP')
         const value = cpu.dataView.getUint16(93, true) + 1;
         cpu.dataView.setUint16(93, value, true);
         cpu.data[(opcode & 0x1f0) >> 4] = cpu.data[value];
@@ -693,14 +673,14 @@ export function avrInstruction(cpu: ICPU): void {
 
     /* SBI, 1001 1010 AAAA Abbb */
     if ((opcode & 0xff00) === 0x9a00) {
-        const target = ((opcode & 0xf8) >> 3) + 32;
+        const target = ((opcode & 0xf8) >> 3) as u16 + 32;
         cpu.writeData(target, cpu.readData(target) | (1 << (<u8>opcode & 7)));
         cpu.cycles++;
     }
 
     /* SBIC, 1001 1001 AAAA Abbb */
     if ((opcode & 0xff00) === 0x9900) {
-        const value = cpu.readData(((opcode & 0xf8) >> 3) + 32);
+        const value = cpu.readData(((opcode & 0xf8) >> 3) as u16 + 32);
         if (!(value & (1 << (<u8>opcode & 7)))) {
             const nextOpcode = cpu.progMem[cpu.pc + 1];
             const skipSize = isTwoWordInstruction(nextOpcode) ? 2 : 1;
@@ -711,7 +691,7 @@ export function avrInstruction(cpu: ICPU): void {
 
     /* SBIS, 1001 1011 AAAA Abbb */
     if ((opcode & 0xff00) === 0x9b00) {
-        const value = cpu.readData(((opcode & 0xf8) >> 3) + 32);
+        const value = cpu.readData(((opcode & 0xf8) >> 3) as u16 + 32);
         if (value & (1 << (<u8>opcode & 7))) {
             const nextOpcode = cpu.progMem[cpu.pc + 1];
             const skipSize = isTwoWordInstruction(nextOpcode) ? 2 : 1;
@@ -726,7 +706,7 @@ export function avrInstruction(cpu: ICPU): void {
         const a = cpu.dataView.getUint16(i, true);
         const l = (opcode & 0xf) | ((opcode & 0xc0) >> 2);
         const R = a - l;
-        cpu.dataView.setUint16(i, R, true);
+        cpu.dataView.setUint16(i, R as u16, true);
         let sreg = cpu.data[95] & 0xc0;
         sreg |= R ? 0 : 2;
         sreg |= 0x8000 & R ? 4 : 0;
@@ -792,6 +772,7 @@ export function avrInstruction(cpu: ICPU): void {
         const x = cpu.dataView.getUint16(26, true);
         cpu.writeData(x, cpu.data[(opcode & 0x1f0) >> 4]);
         cpu.dataView.setUint16(26, x + 1, true);
+        cpu.cycles++;
     }
 
     /* STX(DEC), 1001 001r rrrr 1110 */
@@ -832,7 +813,7 @@ export function avrInstruction(cpu: ICPU): void {
     ) {
         cpu.writeData(
             cpu.dataView.getUint16(28, true) +
-            ((opcode & 7) | ((opcode & 0xc00) >> 7) | ((opcode & 0x2000) >> 8)),
+            ((opcode & 7) | ((opcode & 0xc00) >> 7) | ((opcode & 0x2000) >> 8)) as u16,
             cpu.data[(opcode & 0x1f0) >> 4]
         );
         cpu.cycles++;
@@ -866,7 +847,7 @@ export function avrInstruction(cpu: ICPU): void {
     ) {
         cpu.writeData(
             cpu.dataView.getUint16(30, true) +
-            ((opcode & 7) | ((opcode & 0xc00) >> 7) | ((opcode & 0x2000) >> 8)),
+            ((opcode & 7) | ((opcode & 0xc00) >> 7) | ((opcode & 0x2000) >> 8)) as u16,
             cpu.data[(opcode & 0x1f0) >> 4]
         );
         cpu.cycles++;
@@ -926,9 +907,6 @@ export function avrInstruction(cpu: ICPU): void {
         cpu.data[r] = val2;
     }
 
-    trace(cpu.pc.toString())
-    trace(cpu.progMem.length.toString())
     cpu.pc = (cpu.pc + 1) % <u32>cpu.progMem.length;
-    trace(cpu.pc.toString())
     cpu.cycles++;
 }
