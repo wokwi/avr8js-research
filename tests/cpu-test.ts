@@ -3,6 +3,10 @@ import {loadBlink} from "../compile/programs";
 import {CPU} from '../src/cpu-wrapper';
 import {loadHexBytes} from "../compile/compile";
 import {avrInstruction, CPU as CPU2} from "avr8js";
+import * as Benchmark from "benchmark";
+import {performance} from "perf_hooks";
+
+const Suite = Benchmark.Suite
 
 const assembly = was.exports
 const avr8js = assembly.avr8js
@@ -59,6 +63,28 @@ export function testWrapper() {
         .then(() => console.log('Finished program.'), (err) => console.error(err));
 }
 
+export function benchmarkCPUs() {
+    loadHexBytes("compile/program.hex")
+        // new Promise((resolve, reject) => {
+        //     const program = new Uint16Array(16384);
+        //     loadBlink(program);
+        //     resolve(program)
+        // })
+        .then((program: Uint16Array) => {
+            const suite = new Suite
+            const cycles = 50000
+            console.log('Run for ' + cycles + ' cycles...')
+            suite.add('AVR WASM with wrapper', () => {
+                runWrapper(program, cycles)
+            }).add('AVR8js reference implementation', () => {
+                runAvr(program, cycles)
+            }).on('cycle', event => {
+                console.log(String(event.target))
+            }).run();
+        })
+        .then(() => console.log('Finished program.'), (err) => console.error(err));
+}
+
 export function compareCPUs() {
     loadHexBytes("compile/program.hex")
         // new Promise((resolve, reject) => {
@@ -67,7 +93,7 @@ export function compareCPUs() {
         //     resolve(program)
         // })
         .then((program: Uint16Array) => {
-            const cycles = 14
+            const cycles = 500000
             console.log('Run for ' + cycles + ' cycles...')
             runWrapper(program, cycles)
             console.log('======')
@@ -77,18 +103,24 @@ export function compareCPUs() {
 }
 
 function runWrapper(program: Uint16Array, cycles: number = 2000) {
-    const cpu = new CPU(was, program)
-    logAvrState(cpu)
+    const cpu = new CPU(was, program);
+    // logAvrState(cpu)
+    const startTime = performance.now();
     cpu.runProgram(cycles);
+    const endTime = performance.now();
+    console.log('Time: ' + (endTime - startTime) + 'ms');
     logAvrState(cpu);
 }
 
 function runAvr(program: Uint16Array, cycles: number = 2000) {
-    const cpu = new CPU2(program)
-    logAvrState(cpu)
+    const cpu = new CPU2(program);
+    // logAvrState(cpu)
+    const startTime = performance.now();
     for (let i = 0; i < cycles; i++) {
-        avrInstruction(cpu)
+        avrInstruction(cpu);
     }
+    const endTime = performance.now();
+    console.log('Time: ' + (endTime - startTime) + 'ms');
     logAvrState(cpu)
 }
 
@@ -100,7 +132,7 @@ function logAvrState(cpu: CPU | CPU2) {
         cycles: cpu.cycles,
         SREG: cpu.SREG,
         SP: cpu.SP,
-        progMem : cpu.progMem.reduce((value, next) => value + next)
+        progMem: cpu.progMem.reduce((value, next) => value + next)
     }
     console.table(state)
 }
