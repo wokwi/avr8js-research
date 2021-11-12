@@ -8,12 +8,14 @@
  * the datasheet)
  *
  * Copyright (C) 2019, 2020 Uri Shaked
+ *
+ * v0.18.6 - Modified by Dario Götze
  */
 
 import { CPU } from './cpu';
-import { u16 } from '../types';
 
-function isTwoWordInstruction(opcode: u16) {
+// DG Added boolean return type
+function isTwoWordInstruction(opcode: u16): boolean {
   return (
     /* LDS */
     (opcode & 0xfe0f) === 0x9000 ||
@@ -26,8 +28,15 @@ function isTwoWordInstruction(opcode: u16) {
   );
 }
 
-export function avrInstruction(cpu: CPU) {
-  const opcode = cpu.progMem[cpu.pc];
+/*
+    DG
+    - Added void return type
+    - Replaced 'const { pc22Bits } = cpu' with 'const pc22Bits = cpu.pc22Bits'
+    - Set type of opcode to u32 to fix implicit type cast problems
+    - Apply explicit typecasts using function expression for ts portability. See https://www.assemblyscript.org/portability.html
+ */
+export function avrInstruction(cpu: CPU): void {
+  const opcode : u32 = cpu.progMem[cpu.pc];
 
   if ((opcode & 0xfc00) === 0x1c00) {
     /* ADC, 0001 11rd dddd rrrr */
@@ -63,7 +72,7 @@ export function avrInstruction(cpu: CPU) {
     const addr = 2 * ((opcode & 0x30) >> 4) + 24;
     const value = cpu.dataView.getUint16(addr, true);
     const R = (value + ((opcode & 0xf) | ((opcode & 0xc0) >> 2))) & 0xffff;
-    cpu.dataView.setUint16(addr, R, true);
+    cpu.dataView.setUint16(addr, u16(R), true);
     let sreg = cpu.data[95] & 0xe0;
     sreg |= R ? 0 : 2;
     sreg |= 0x8000 & R ? 4 : 0;
@@ -104,38 +113,38 @@ export function avrInstruction(cpu: CPU) {
     cpu.data[95] = sreg;
   } else if ((opcode & 0xff8f) === 0x9488) {
     /* BCLR, 1001 0100 1sss 1000 */
-    cpu.data[95] &= ~(1 << ((opcode & 0x70) >> 4));
+    cpu.data[95] &= ~(1 << u8((opcode & 0x70) >> 4));
   } else if ((opcode & 0xfe08) === 0xf800) {
     /* BLD, 1111 100d dddd 0bbb */
     const b = opcode & 7;
     const d = (opcode & 0x1f0) >> 4;
-    cpu.data[d] = (~(1 << b) & cpu.data[d]) | (((cpu.data[95] >> 6) & 1) << b);
+    cpu.data[d] = (~(1 << b) & cpu.data[d]) | (((cpu.data[95] >> 6) & 1) << u8(b));
   } else if ((opcode & 0xfc00) === 0xf400) {
     /* BRBC, 1111 01kk kkkk ksss */
-    if (!(cpu.data[95] & (1 << (opcode & 7)))) {
+    if (!(cpu.data[95] & (1 << u8(opcode & 7)))) {
       cpu.pc = cpu.pc + (((opcode & 0x1f8) >> 3) - (opcode & 0x200 ? 0x40 : 0));
       cpu.cycles++;
     }
   } else if ((opcode & 0xfc00) === 0xf000) {
     /* BRBS, 1111 00kk kkkk ksss */
-    if (cpu.data[95] & (1 << (opcode & 7))) {
+    if (cpu.data[95] & (1 << u8(opcode & 7))) {
       cpu.pc = cpu.pc + (((opcode & 0x1f8) >> 3) - (opcode & 0x200 ? 0x40 : 0));
       cpu.cycles++;
     }
   } else if ((opcode & 0xff8f) === 0x9408) {
     /* BSET, 1001 0100 0sss 1000 */
-    cpu.data[95] |= 1 << ((opcode & 0x70) >> 4);
+    cpu.data[95] |= 1 << u8((opcode & 0x70) >> 4);
   } else if ((opcode & 0xfe08) === 0xfa00) {
     /* BST, 1111 101d dddd 0bbb */
     const d = cpu.data[(opcode & 0x1f0) >> 4];
     const b = opcode & 7;
-    cpu.data[95] = (cpu.data[95] & 0xbf) | ((d >> b) & 1 ? 0x40 : 0);
+    cpu.data[95] = (cpu.data[95] & 0xbf) | ((d >> u8(b)) & 1 ? 0x40 : 0);
   } else if ((opcode & 0xfe0e) === 0x940e) {
     /* CALL, 1001 010k kkkk 111k kkkk kkkk kkkk kkkk */
     const k = cpu.progMem[cpu.pc + 1] | ((opcode & 1) << 16) | ((opcode & 0x1f0) << 13);
     const ret = cpu.pc + 2;
     const sp = cpu.dataView.getUint16(93, true);
-    const { pc22Bits } = cpu;
+    const pc22Bits = cpu.pc22Bits;
     cpu.data[sp] = 255 & ret;
     cpu.data[sp - 1] = (ret >> 8) & 255;
     if (pc22Bits) {
@@ -146,10 +155,10 @@ export function avrInstruction(cpu: CPU) {
     cpu.cycles += pc22Bits ? 4 : 3;
   } else if ((opcode & 0xff00) === 0x9800) {
     /* CBI, 1001 1000 AAAA Abbb */
-    const A = opcode & 0xf8;
-    const b = opcode & 7;
+    const A = u16(opcode) & 0xf8;
+    const b = u8(opcode) & 7;
     const R = cpu.readData((A >> 3) + 32);
-    const mask = 1 << b;
+    const mask : u8 = 1 << b;
     cpu.writeData((A >> 3) + 32, R & ~mask, mask);
   } else if ((opcode & 0xfe0f) === 0x9400) {
     /* COM, 1001 010d dddd 0000 */
@@ -292,7 +301,7 @@ export function avrInstruction(cpu: CPU) {
     /* ICALL, 1001 0101 0000 1001 */
     const retAddr = cpu.pc + 1;
     const sp = cpu.dataView.getUint16(93, true);
-    const { pc22Bits } = cpu;
+    const pc22Bits = cpu.pc22Bits;
     cpu.data[sp] = retAddr & 255;
     cpu.data[sp - 1] = (retAddr >> 8) & 255;
     if (pc22Bits) {
@@ -307,7 +316,7 @@ export function avrInstruction(cpu: CPU) {
     cpu.cycles++;
   } else if ((opcode & 0xf800) === 0xb000) {
     /* IN, 1011 0AAd dddd AAAA */
-    const i = cpu.readData(((opcode & 0xf) | ((opcode & 0x600) >> 5)) + 32);
+    const i = cpu.readData(u16((opcode & 0xf) | ((opcode & 0x600) >> 5)) + 32);
     cpu.data[(opcode & 0x1f0) >> 4] = i;
   } else if ((opcode & 0xfe0f) === 0x9403) {
     /* INC, 1001 010d dddd 0011 */
@@ -393,7 +402,7 @@ export function avrInstruction(cpu: CPU) {
     cpu.cycles++;
     cpu.data[(opcode & 0x1f0) >> 4] = cpu.readData(
       cpu.dataView.getUint16(28, true) +
-        ((opcode & 7) | ((opcode & 0xc00) >> 7) | ((opcode & 0x2000) >> 8))
+        u16((opcode & 7) | ((opcode & 0xc00) >> 7) | ((opcode & 0x2000) >> 8))
     );
   } else if ((opcode & 0xfe0f) === 0x8000) {
     /* LDZ, 1000 000d dddd 0000 */
@@ -419,7 +428,7 @@ export function avrInstruction(cpu: CPU) {
     cpu.cycles++;
     cpu.data[(opcode & 0x1f0) >> 4] = cpu.readData(
       cpu.dataView.getUint16(30, true) +
-        ((opcode & 7) | ((opcode & 0xc00) >> 7) | ((opcode & 0x2000) >> 8))
+        u16((opcode & 7) | ((opcode & 0xc00) >> 7) | ((opcode & 0x2000) >> 8))
     );
   } else if (opcode === 0x95c8) {
     /* LPM, 1001 0101 1100 1000 */
@@ -511,7 +520,7 @@ export function avrInstruction(cpu: CPU) {
     cpu.data[95] = sreg;
   } else if ((opcode & 0xf800) === 0xb800) {
     /* OUT, 1011 1AAr rrrr AAAA */
-    cpu.writeData(((opcode & 0xf) | ((opcode & 0x600) >> 5)) + 32, cpu.data[(opcode & 0x1f0) >> 4]);
+    cpu.writeData(u16((opcode & 0xf) | ((opcode & 0x600) >> 5)) + 32, cpu.data[(opcode & 0x1f0) >> 4]);
   } else if ((opcode & 0xfe0f) === 0x900f) {
     /* POP, 1001 000d dddd 1111 */
     const value = cpu.dataView.getUint16(93, true) + 1;
@@ -529,7 +538,7 @@ export function avrInstruction(cpu: CPU) {
     const k = (opcode & 0x7ff) - (opcode & 0x800 ? 0x800 : 0);
     const retAddr = cpu.pc + 1;
     const sp = cpu.dataView.getUint16(93, true);
-    const { pc22Bits } = cpu;
+    const pc22Bits = cpu.pc22Bits;
     cpu.data[sp] = 255 & retAddr;
     cpu.data[sp - 1] = (retAddr >> 8) & 255;
     if (pc22Bits) {
@@ -540,7 +549,7 @@ export function avrInstruction(cpu: CPU) {
     cpu.cycles += pc22Bits ? 3 : 2;
   } else if (opcode === 0x9508) {
     /* RET, 1001 0101 0000 1000 */
-    const { pc22Bits } = cpu;
+    const pc22Bits = cpu.pc22Bits;
     const i = cpu.dataView.getUint16(93, true) + (pc22Bits ? 3 : 2);
     cpu.dataView.setUint16(93, i, true);
     cpu.pc = (cpu.data[i - 1] << 8) + cpu.data[i] - 1;
@@ -550,7 +559,7 @@ export function avrInstruction(cpu: CPU) {
     cpu.cycles += pc22Bits ? 4 : 3;
   } else if (opcode === 0x9518) {
     /* RETI, 1001 0101 0001 1000 */
-    const { pc22Bits } = cpu;
+    const pc22Bits = cpu.pc22Bits;
     const i = cpu.dataView.getUint16(93, true) + (pc22Bits ? 3 : 2);
     cpu.dataView.setUint16(93, i, true);
     cpu.pc = (cpu.data[i - 1] << 8) + cpu.data[i] - 1;
@@ -603,14 +612,14 @@ export function avrInstruction(cpu: CPU) {
     cpu.data[95] = sreg;
   } else if ((opcode & 0xff00) === 0x9a00) {
     /* SBI, 1001 1010 AAAA Abbb */
-    const target = ((opcode & 0xf8) >> 3) + 32;
-    const mask = 1 << (opcode & 7);
+    const target = u16((opcode & 0xf8) >> 3) + 32;
+    const mask : u8 = 1 << u8(opcode & 7);
     cpu.writeData(target, cpu.readData(target) | mask, mask);
     cpu.cycles++;
   } else if ((opcode & 0xff00) === 0x9900) {
     /* SBIC, 1001 1001 AAAA Abbb */
-    const value = cpu.readData(((opcode & 0xf8) >> 3) + 32);
-    if (!(value & (1 << (opcode & 7)))) {
+    const value = cpu.readData(u16((opcode & 0xf8) >> 3) + 32);
+    if (!(value & (1 << u8(opcode & 7)))) {
       const nextOpcode = cpu.progMem[cpu.pc + 1];
       const skipSize = isTwoWordInstruction(nextOpcode) ? 2 : 1;
       cpu.cycles += skipSize;
@@ -618,8 +627,8 @@ export function avrInstruction(cpu: CPU) {
     }
   } else if ((opcode & 0xff00) === 0x9b00) {
     /* SBIS, 1001 1011 AAAA Abbb */
-    const value = cpu.readData(((opcode & 0xf8) >> 3) + 32);
-    if (value & (1 << (opcode & 7))) {
+    const value = cpu.readData(u16((opcode & 0xf8) >> 3) + 32);
+    if (value & (1 << u8(opcode & 7))) {
       const nextOpcode = cpu.progMem[cpu.pc + 1];
       const skipSize = isTwoWordInstruction(nextOpcode) ? 2 : 1;
       cpu.cycles += skipSize;
@@ -629,7 +638,7 @@ export function avrInstruction(cpu: CPU) {
     /* SBIW, 1001 0111 KKdd KKKK */
     const i = 2 * ((opcode & 0x30) >> 4) + 24;
     const a = cpu.dataView.getUint16(i, true);
-    const l = (opcode & 0xf) | ((opcode & 0xc0) >> 2);
+    const l = u16((opcode & 0xf) | ((opcode & 0xc0) >> 2));
     const R = a - l;
     cpu.dataView.setUint16(i, R, true);
     let sreg = cpu.data[95] & 0xc0;
@@ -643,7 +652,7 @@ export function avrInstruction(cpu: CPU) {
     cpu.cycles++;
   } else if ((opcode & 0xfe08) === 0xfc00) {
     /* SBRC, 1111 110r rrrr 0bbb */
-    if (!(cpu.data[(opcode & 0x1f0) >> 4] & (1 << (opcode & 7)))) {
+    if (!(cpu.data[(opcode & 0x1f0) >> 4] & (1 << u8(opcode & 7)))) {
       const nextOpcode = cpu.progMem[cpu.pc + 1];
       const skipSize = isTwoWordInstruction(nextOpcode) ? 2 : 1;
       cpu.cycles += skipSize;
@@ -651,7 +660,7 @@ export function avrInstruction(cpu: CPU) {
     }
   } else if ((opcode & 0xfe08) === 0xfe00) {
     /* SBRS, 1111 111r rrrr 0bbb */
-    if (cpu.data[(opcode & 0x1f0) >> 4] & (1 << (opcode & 7))) {
+    if (cpu.data[(opcode & 0x1f0) >> 4] & (1 << u8(opcode & 7))) {
       const nextOpcode = cpu.progMem[cpu.pc + 1];
       const skipSize = isTwoWordInstruction(nextOpcode) ? 2 : 1;
       cpu.cycles += skipSize;
@@ -715,7 +724,7 @@ export function avrInstruction(cpu: CPU) {
     /* STDY, 10q0 qq1r rrrr 1qqq */
     cpu.writeData(
       cpu.dataView.getUint16(28, true) +
-        ((opcode & 7) | ((opcode & 0xc00) >> 7) | ((opcode & 0x2000) >> 8)),
+        u16((opcode & 7) | ((opcode & 0xc00) >> 7) | ((opcode & 0x2000) >> 8)),
       cpu.data[(opcode & 0x1f0) >> 4]
     );
     cpu.cycles++;
@@ -743,7 +752,7 @@ export function avrInstruction(cpu: CPU) {
     /* STDZ, 10q0 qq1r rrrr 0qqq */
     cpu.writeData(
       cpu.dataView.getUint16(30, true) +
-        ((opcode & 7) | ((opcode & 0xc00) >> 7) | ((opcode & 0x2000) >> 8)),
+        u16((opcode & 7) | ((opcode & 0xc00) >> 7) | ((opcode & 0x2000) >> 8)),
       cpu.data[(opcode & 0x1f0) >> 4]
     );
     cpu.cycles++;
