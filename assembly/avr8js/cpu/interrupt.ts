@@ -10,7 +10,8 @@
 
 import {CPU} from './cpu';
 
-export function avrInterrupt(cpu: CPU, addr: number): void {
+// DG Changed addr type to u8
+export function avrInterrupt(cpu: CPU, addr: u8): void {
     const sp = cpu.dataView.getUint16(93, true);
     cpu.data[sp] = cpu.pc & 0xff;
     cpu.data[sp - 1] = (cpu.pc >> 8) & 0xff;

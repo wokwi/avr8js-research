@@ -1,6 +1,6 @@
 import {ASUtil, ResultObject} from "@assemblyscript/loader";
 import * as MyModule from "../../build/module";
-import {avr8js, u16, u32, u64, u8} from "../../build/module";
+import {avr8js, u16, u32, u8} from "../../build/module";
 import {AVRClockEventCallback, AVRInterruptConfig} from "../../assembly/avr8js/cpu/cpu";
 
 export class CPU {
@@ -62,6 +62,7 @@ export class CPU {
         return this.avr8js.getSREG(this.ptr);
     }
 
+    //TODO Implement following
     get interruptsEnabled(): boolean {
         return false;
     }
@@ -99,7 +100,7 @@ export class CPU {
     }
 
     tick(): void {
-
+        this.avr8js.tick(this.ptr);
     }
 
     runProgram(cycles = 5000) {

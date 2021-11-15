@@ -31,9 +31,9 @@ export interface AVRInterruptConfig {
     enableMask: u8;
     flagRegister: u16;
     flagMask: u8;
-    // DG Removed optional due missing assembly script support, added '| null'
-    constant: boolean | null;
-    inverseFlag: boolean | null;
+    // DG Removed optional due missing assembly script support
+    constant: boolean;
+    inverseFlag: boolean;
 }
 
 export type AVRClockEventCallback = () => void;
@@ -133,8 +133,9 @@ export class CPU {
         return !!(this.SREG & 0x80);
     }
 
+    // TODO DG Check pendingInterrupts handling. Cast from i32 to i16.
     private updateNextInterrupt(): void {
-        this.nextInterrupt = this.pendingInterrupts.findIndex((item) => !!item);
+        this.nextInterrupt = i16(this.pendingInterrupts.findIndex((item) => !!item));
     }
 
     setInterruptFlag(interrupt: AVRInterruptConfig): void {
@@ -163,8 +164,11 @@ export class CPU {
         this.updateNextInterrupt();
     }
 
+    // TODO check correctness. DG Replaced delete with splice.
     clearInterrupt(interruptConfig: AVRInterruptConfig, clearFlag: boolean = true): void {
-        delete this.pendingInterrupts[interruptConfig.address];
+        const index = this.pendingInterrupts.indexOf(interruptConfig, 0);
+        if (index > -1) this.pendingInterrupts.splice(index, 1);
+        // delete this.pendingInterrupts[interruptConfig.address];
         if (clearFlag) {
             this.data[interruptConfig.flagRegister] &= ~interruptConfig.flagMask;
         }

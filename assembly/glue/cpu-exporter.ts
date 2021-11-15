@@ -58,6 +58,10 @@ export namespace avr8js {
         return cpu.data
     }
 
+    export function tick(cpu: CPU): void {
+        cpu.tick()
+    }
+
     export function addWriteHook(cpu: CPU, addr: u32): void {
         cpu.writeHooks.set(addr, callWriteHook);
     }
