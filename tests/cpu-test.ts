@@ -12,7 +12,7 @@ const assembly = was.exports
 const avr8js = assembly.avr8js
 
 export function runTest() {
-    // loadHexBytes("compile/program.hex")
+    // loadHexBytes("./src/compile/program.hex")
     new Promise((resolve, reject) => {
         const program = new Uint16Array(16384);
         loadBlink(program);
@@ -53,7 +53,7 @@ export function runTest() {
 }
 
 export function testWrapper() {
-    loadHexBytes("compile/program.hex")
+    loadHexBytes("./src/compile/program.hex")
         // new Promise((resolve, reject) => {
         //     const program = new Uint16Array(16384);
         //     loadBlink(program);
@@ -64,7 +64,7 @@ export function testWrapper() {
 }
 
 export function benchmarkCPUs() {
-    loadHexBytes("compile/program.hex")
+    loadHexBytes("./src/compile/program.hex")
         // new Promise((resolve, reject) => {
         //     const program = new Uint16Array(16384);
         //     loadBlink(program);
@@ -86,7 +86,7 @@ export function benchmarkCPUs() {
 }
 
 export function compareCPUs() {
-    loadHexBytes("compile/program.hex")
+    loadHexBytes("./src/compile/program.hex")
         // new Promise((resolve, reject) => {
         //     const program = new Uint16Array(16384);
         //     loadBlink(program);
