@@ -1,9 +1,9 @@
 // The entry file of your WebAssembly module.
-import {Class} from "./class";
+import {Class} from "./tests/class";
 
-export * from './class';
-export * from './cpu-exporter';
-import {compileInstruction} from "./cpu/instruction-compiler";
+export * from './tests/class';
+export * from './glue/cpu-exporter';
+import {compileInstruction} from "./compiler/instruction-compiler";
 
 // CPU specific
 export declare function log(value: string): void;

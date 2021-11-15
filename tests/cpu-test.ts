@@ -1,7 +1,7 @@
 import {was, writeHooks} from "../src";
-import {loadBlink} from "../compile/programs";
-import {CPU} from '../src/cpu-wrapper';
-import {loadHexBytes} from "../compile/compile";
+import {loadBlink} from "../src/compile/programs";
+import {CPU} from '../src/glue/cpu-wrapper';
+import {loadHexBytes} from "../src/compile/compile";
 import {avrInstruction, CPU as CPU2} from "avr8js";
 import * as Benchmark from "benchmark";
 import {performance} from "perf_hooks";

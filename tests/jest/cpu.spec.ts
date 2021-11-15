@@ -1,5 +1,5 @@
-import {CPU} from './cpu-wrapper';
-import {was} from "./index";
+import {CPU} from '../../src/glue/cpu-wrapper';
+import {was} from "../../src";
 
 type ITestEvent = [number, number]; // Expected cycles, actual cycles
 

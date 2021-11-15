@@ -1,6 +1,6 @@
-import {CPU} from "./v2/cpu/cpu";
-import {avrInstruction} from "./v2/cpu/instruction";
-import {callWriteHook} from './index';
+import {CPU} from "../v2/cpu/cpu";
+import {avrInstruction} from "../v2/cpu/instruction";
+import {callWriteHook} from '../index';
 
 export namespace avr8js {
 
