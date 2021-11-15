@@ -6,7 +6,7 @@
     "asbuild:watch": "onchange -i 'assembly/*' -- npm run asbuild",
     "tsc": "tsc",
     "test": "node tests",
-    "arduino:compile": "node compile",
+    "arduino:compile": "node src/compile",
     "compile&test": "npm run asbuild:untouched && npm run test",
     "ino:compile&test": "npm run arduino:compile && npm run test",
     "jest": "jest"
