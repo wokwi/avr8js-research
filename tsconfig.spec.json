@@ -3,6 +3,5 @@
     "esModuleInterop": true,
     "noEmitOnError": false
   },
-  "extends": "./tsconfig.json",
-  "exclude": []
+  "extends": "./tsconfig.json"
 }

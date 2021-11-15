@@ -4,5 +4,6 @@
     "module": "CommonJS",
     "moduleResolution": "Node"
   },
-  "exclude": ["assembly"]
+  "exclude": ["**/assembly/**/*",
+  "build"]
 }
