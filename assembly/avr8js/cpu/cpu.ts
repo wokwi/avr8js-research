@@ -45,9 +45,11 @@ interface AVRClockEventEntry {
 }
 
 export class CPU {
+    // @ts-ignore
     readonly data: Uint8Array = new Uint8Array(<i32>(this.sramBytes + registerSpace));
     readonly data16: Uint16Array = Uint16Array.wrap(this.data.buffer);
     readonly dataView: DataView = new DataView(this.data.buffer);
+    // @ts-ignore
     readonly progBytes: Uint8Array = Uint8Array.wrap(this.progMem.buffer);
     readonly readHooks: CPUMemoryReadHooks = new CPUMemoryReadHooks();
     readonly writeHooks: CPUMemoryHooks = new CPUMemoryHooks();
