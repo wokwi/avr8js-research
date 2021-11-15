@@ -1,7 +1,7 @@
 import {ASUtil, ResultObject} from "@assemblyscript/loader";
 import * as MyModule from "../../build/module";
 import {avr8js, u16, u32, u64, u8} from "../../build/module";
-import {AVRClockEventCallback, AVRInterruptConfig} from "../../assembly/v2/cpu/cpu";
+import {AVRClockEventCallback, AVRInterruptConfig} from "../../assembly/avr8js/cpu/cpu";
 
 export class CPU {
 
