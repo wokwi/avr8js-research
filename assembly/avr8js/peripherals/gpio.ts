@@ -21,11 +21,19 @@ export interface AVRExternalInterrupt {
 export class AVRExternalInterruptImpl implements AVRExternalInterrupt {
     private _EICRA: u8;
     private _EICRB: u8;
-    private _EIFR: u8;
     private _EIMSK: u8;
+    private _EIFR: u8;
     private _index: u8;
     private _interrupt: u8;
 
+    constructor(EICRA: u8, EICRB: u8, EIMSK: u8, EIFR: u8, index: u8, interrupt: u8) {
+        this._EICRA = EICRA;
+        this._EICRB = EICRB;
+        this._EIFR = EIFR;
+        this._EIMSK = EIMSK;
+        this._index = index;
+        this._interrupt = interrupt;
+    }
 
     get EICRA(): u8 {
         return this._EICRA;
@@ -74,16 +82,6 @@ export class AVRExternalInterruptImpl implements AVRExternalInterrupt {
     set interrupt(value: u8) {
         this._interrupt = value;
     }
-
-
-    constructor(EICRA: u8, EICRB: u8, EIFR: u8, EIMSK: u8, index: u8, interrupt: u8) {
-        this._EICRA = EICRA;
-        this._EICRB = EICRB;
-        this._EIFR = EIFR;
-        this._EIMSK = EIMSK;
-        this._index = index;
-        this._interrupt = interrupt;
-    }
 }
 
 export interface AVRPinChangeInterrupt {
@@ -104,6 +102,16 @@ export class AVRPinChangeInterruptImpl implements AVRPinChangeInterrupt {
     private _mask: u8;
     private _offset: u8;
     private _pinChangeInterrupt: u8;
+
+    constructor(PCIE: u8, PCICR: u8, PCIFR: u8, PCMSK: u8, pinChangeInterrupt: u8, mask: u8, offset: u8) {
+        this._PCICR = PCICR;
+        this._PCIE = PCIE;
+        this._PCIFR = PCIFR;
+        this._PCMSK = PCMSK;
+        this._mask = mask;
+        this._offset = offset;
+        this._pinChangeInterrupt = pinChangeInterrupt;
+    }
 
     get PCICR(): u8 {
         return this._PCICR;
@@ -160,16 +168,6 @@ export class AVRPinChangeInterruptImpl implements AVRPinChangeInterrupt {
     set pinChangeInterrupt(value: u8) {
         this._pinChangeInterrupt = value;
     }
-
-    constructor(PCICR: u8, PCIE: u8, PCIFR: u8, PCMSK: u8, mask: u8, offset: u8, pinChangeInterrupt: u8) {
-        this._PCICR = PCICR;
-        this._PCIE = PCIE;
-        this._PCIFR = PCIFR;
-        this._PCMSK = PCMSK;
-        this._mask = mask;
-        this._offset = offset;
-        this._pinChangeInterrupt = pinChangeInterrupt;
-    }
 }
 
 export interface AVRPortConfig {
@@ -180,7 +178,7 @@ export interface AVRPortConfig {
 
     // Interrupt settings
     pinChange: AVRPinChangeInterrupt | null;
-    externalInterrupts: (AVRExternalInterrupt | null)[];
+    externalInterrupts: AVRExternalInterrupt[];
 }
 
 export class AVRPortConfigImpl implements AVRPortConfig {
@@ -188,7 +186,17 @@ export class AVRPortConfigImpl implements AVRPortConfig {
     private _DDR: u8;
     private _PORT: u8;
     private _pinChange: AVRPinChangeInterrupt | null;
-    private _externalInterrupts: (AVRExternalInterrupt | null)[];
+    private _externalInterrupts: AVRExternalInterrupt[];
+
+    //TODO DG Check correctness. Removed nullability of externalInterrupts. Before: AVRExternalInterrupt | null.
+    // DG Added default value
+    constructor(PIN: u8, DDR: u8, PORT: u8, pinChange: AVRPinChangeInterrupt | null = null, externalInterrupts: AVRExternalInterrupt[] = []) {
+        this._PIN = PIN;
+        this._DDR = DDR;
+        this._PORT = PORT;
+        this._pinChange = pinChange;
+        this._externalInterrupts = externalInterrupts;
+    }
 
     get PIN(): u8 {
         return this._PIN;
@@ -222,21 +230,12 @@ export class AVRPortConfigImpl implements AVRPortConfig {
         this._pinChange = value;
     }
 
-    get externalInterrupts(): Array<AVRExternalInterrupt | null> {
+    get externalInterrupts(): Array<AVRExternalInterrupt> {
         return this._externalInterrupts;
     }
 
-    set externalInterrupts(value: (AVRExternalInterrupt | null)[]) {
+    set externalInterrupts(value: (AVRExternalInterrupt)[]) {
         this._externalInterrupts = value;
-    }
-
-
-    constructor(PIN: u8, DDR: u8, PORT: u8, pinChange: AVRPinChangeInterrupt | null, externalInterrupts: (AVRExternalInterrupt | null)[]) {
-        this._PIN = PIN;
-        this._DDR = DDR;
-        this._PORT = PORT;
-        this._pinChange = pinChange;
-        this._externalInterrupts = externalInterrupts;
     }
 }
 
@@ -249,15 +248,14 @@ export const INT0 = new AVRExternalInterruptImpl(
     0x3c,
     0,
     2);
-//
-// export const INT1: AVRExternalInterrupt = {
-//     EICRA: 0x69,
-//     EICRB: 0,
-//     EIMSK: 0x3d,
-//     EIFR: 0x3c,
-//     index: 1,
-//     interrupt: 4,
-// };
+
+export const INT1 = new AVRExternalInterruptImpl(
+    0x69,
+    0,
+    0x3d,
+    0x3c,
+    1,
+    4);
 
 // DG TODO Fix object export. ERROR TS2322: Type '<object>' is not assignable to type 'i32'.
 
@@ -271,65 +269,44 @@ export const PCINT0 = new AVRPinChangeInterruptImpl(
     0,
 );
 
-// export const PCINT0 = {
-//     PCIE: 0,
-//     PCICR: 0x68,
-//     PCIFR: 0x3b,
-//     PCMSK: 0x6b,
-//     pinChangeInterrupt: 6,
-//     mask: 0xff,
-//     offset: 0,
-// };
-//
-// export const PCINT1 = {
-//     PCIE: 1,
-//     PCICR: 0x68,
-//     PCIFR: 0x3b,
-//     PCMSK: 0x6c,
-//     pinChangeInterrupt: 8,
-//     mask: 0xff,
-//     offset: 0,
-// };
-//
-// export const PCINT2 = {
-//     PCIE: 2,
-//     PCICR: 0x68,
-//     PCIFR: 0x3b,
-//     PCMSK: 0x6d,
-//     pinChangeInterrupt: 10,
-//     mask: 0xff,
-//     offset: 0,
-// };
+export const PCINT1 = new AVRPinChangeInterruptImpl(
+    1,
+    0x68,
+    0x3b,
+    0x6c,
+    8,
+    0xff,
+    0);
+
+export const PCINT2 = new AVRPinChangeInterruptImpl(
+    2,
+    0x68,
+    0x3b,
+    0x6d,
+    10,
+    0xff,
+    0);
 
 export type GPIOListener = (value: u8, oldValue: u8) => void;
 export type ExternalClockListener = (pinValue: boolean) => void;
 
 // DG TODO Fix interface usage, only getter and setters are currently supported
 // https://www.assemblyscript.org/status.html#classes-and-interfaces
-// export const portAConfig: AVRPortConfig = {
-//     pinChange: null,
-//     PIN: 0x20,
-//     DDR: 0x21,
-//     PORT: 0x22,
-//     externalInterrupts: []
-// };
-//
+export const portAConfig: AVRPortConfig = new AVRPortConfigImpl(
+    0x20,
+    0x21,
+    0x22,
+    null,
+    []);
+
 export const portBConfig: AVRPortConfig = new AVRPortConfigImpl(
     0x23,
     0x24,
     0x25,
+    // Interrupt settings
     PCINT0,
     []);
-// export const portBConfig: AVRPortConfig = {
-//     PIN: 0x23,
-//     DDR: 0x24,
-//     PORT: 0x25,
-//
-//     // Interrupt settings
-//     pinChange: PCINT0,
-//     externalInterrupts: [],
-// };
-//
+
 // export const portCConfig: AVRPortConfig = {
 //     PIN: 0x26,
 //     DDR: 0x27,
@@ -486,15 +463,16 @@ export class AVRIOPort {
                 }
                 : null
         );
-        // DG TODO Replace
-        // const EICRA = externalInterrupts.find((item) => item && item.EICRA)?.EICRA ?? 0;
-        // this.attachInterruptHook(EICRA);
-        // const EICRB = externalInterrupts.find((item) => item && item.EICRB)?.EICRB ?? 0;
-        // this.attachInterruptHook(EICRB);
-        // const EIMSK = externalInterrupts.find((item) => item && item.EIMSK)?.EIMSK ?? 0;
-        // this.attachInterruptHook(EIMSK, 'mask');
-        // const EIFR = externalInterrupts.find((item) => item && item.EIFR)?.EIFR ?? 0;
-        // this.attachInterruptHook(EIFR, 'flag');
+
+        // DG TODO Check correct replacement
+        const EICRA = this.findInterrupt(externalInterrupts, (item) => item.EICRA);
+        this.attachInterruptHook(EICRA);
+        const EICRB = this.findInterrupt(externalInterrupts, (item) => item.EICRB);
+        this.attachInterruptHook(EICRB);
+        const EIMSK = this.findInterrupt(externalInterrupts, (item) => item.EIMSK);
+        this.attachInterruptHook(EIMSK, 'mask');
+        const EIFR = this.findInterrupt(externalInterrupts, (item) => item.EIFR);
+        this.attachInterruptHook(EIFR, 'flag');
 
         // Pin change interrupts
         const pinChange = portConfig.pinChange;
@@ -536,6 +514,19 @@ export class AVRIOPort {
             });
         }
     }
+
+    // DG Added for interrupts
+    findInterrupt(interrupts: AVRExternalInterrupt[], selector: (interrupt: AVRExternalInterrupt) => u8): u8 {
+        if (interrupts.length == 0) return 0;
+        return selector(interrupts[0]);
+    }
+
+    // DG Possibly needed
+    // find<Type>(arr: Array<Type>, predicate: (item: Type) => boolean): Type | null {
+    //     const idx = arr.findIndex(predicate);
+    //     if (idx == -1) return null;
+    //     else return arr[idx];
+    // }
 
     addListener(listener: GPIOListener): void {
         this.listeners.push(listener);
