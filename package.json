@@ -1,19 +1,24 @@
 {
+  "type": "commonjs",
   "scripts": {
     "asbuild:untouched": "asc assembly/index.ts -b build/untouched.wasm -t build/untouched.wat -d build/module.d.ts --sourceMap C://Users/xxred/IdeaProjects/avr8js-research/build/untouched.wasm.map --debug --exportRuntime",
     "asbuild:optimized": "asc assembly/index.ts -b build/optimized.wasm -t build/optimized.wat --sourceMap --optimize --exportRuntime",
     "asbuild": "npm run asbuild:untouched && npm run asbuild:optimized",
     "asbuild:watch": "onchange -i 'assembly/*' -- npm run asbuild",
-    "tsc": "tsc",
+    "tsc": "tsc --project tsconfig.json",
     "test": "node tests",
     "arduino:compile": "node src/compile",
     "compile&test": "npm run asbuild:untouched && npm run test",
     "ino:compile&test": "npm run arduino:compile && npm run test",
-    "jest": "jest"
+    "jest": "jest --config ./jest.config.js --no-cache"
   },
   "dependencies": {
     "@assemblyscript/loader": "^0.19.21",
+    "@babel/core": "^7.16.0",
+    "@babel/preset-env": "^7.16.0",
+    "@babel/preset-typescript": "^7.16.0",
     "avr8js": "^0.18.1",
+    "babel-jest": "^27.3.1",
     "intel-hex": "^0.1.2",
     "node-fetch-commonjs": "^3.0.0",
     "web-streams-polyfill": "^3.1.1"
