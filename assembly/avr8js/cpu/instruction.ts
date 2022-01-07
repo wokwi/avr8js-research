@@ -40,9 +40,9 @@ export function avrInstruction(cpu: CPU): void {
 
   if ((opcode & 0xfc00) === 0x1c00) {
     /* ADC, 0001 11rd dddd rrrr */
-    const d = cpu.data[(opcode & 0x1f0) >> 4];
-    const r = cpu.data[(opcode & 0xf) | ((opcode & 0x200) >> 5)];
-    const sum = d + r + (cpu.data[95] & 1);
+    const d : u16 = cpu.data[(opcode & 0x1f0) >> 4];
+    const r : u16 = cpu.data[(opcode & 0xf) | ((opcode & 0x200) >> 5)];
+    const sum : u16 = d + r + (cpu.data[95] & 1);
     const R = sum & 255;
     cpu.data[(opcode & 0x1f0) >> 4] = R;
     let sreg = cpu.data[95] & 0xc0;
@@ -55,8 +55,8 @@ export function avrInstruction(cpu: CPU): void {
     cpu.data[95] = sreg;
   } else if ((opcode & 0xfc00) === 0xc00) {
     /* ADD, 0000 11rd dddd rrrr */
-    const d = cpu.data[(opcode & 0x1f0) >> 4];
-    const r = cpu.data[(opcode & 0xf) | ((opcode & 0x200) >> 5)];
+    const d : u16 = cpu.data[(opcode & 0x1f0) >> 4];
+    const r : u16 = cpu.data[(opcode & 0xf) | ((opcode & 0x200) >> 5)];
     const R = (d + r) & 255;
     cpu.data[(opcode & 0x1f0) >> 4] = R;
     let sreg = cpu.data[95] & 0xc0;
