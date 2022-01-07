@@ -3,6 +3,7 @@ import {Class} from "./tests/class";
 
 export * from './tests/class';
 export * from './glue/cpu-exporter';
+export * from './avr8js/cpu/instruction';
 import {compileInstruction} from "./compiler/instruction-compiler";
 
 // CPU specific
