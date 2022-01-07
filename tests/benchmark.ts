@@ -1,4 +1,4 @@
-import {was as assembly} from "../src";
+import {wasm as assembly} from "../src";
 import * as Benchmark from "benchmark";
 const Suite = Benchmark.Suite
 

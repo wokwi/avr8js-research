@@ -1,8 +1,8 @@
-import type * as MyModule from "../build/module";
-import {ASUtil, ResultObject, instantiateSync} from "@assemblyscript/loader";
+import type * as MyModule from "../../build/module";
+import {ASUtil, ResultObject, instantiateSync} from "@assemblyscript/loader/umd";
 import {readFileSync} from "fs";
 
-const modulePath = __dirname + "/../build/untouched.wasm"
+const modulePath = __dirname + "/../../build/untouched.wasm"
 export const writeHooks = {}
 
 // @ts-ignore

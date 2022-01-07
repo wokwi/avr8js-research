@@ -1,4 +1,4 @@
-import {was} from "../src";
+import {wasm} from "../src";
 import * as assert from "assert"
 
 export function run() {
@@ -10,12 +10,12 @@ export function run() {
 
 function assertAssemblyAdd() {
     console.log("Validate: assembly add")
-    assert.strictEqual(was.exports.add(1, 2), 3);
+    assert.strictEqual(wasm.exports.add(1, 2), 3);
 }
 
 function assertCompile() {
     console.log("Validate: testCompile")
-    const a: string = was.exports.__getString(was.exports.testCompile());
+    const a: string = wasm.exports.__getString(wasm.exports.testCompile());
     console.log("Type of " + typeof a)
     console.log("Value " + a)
 }

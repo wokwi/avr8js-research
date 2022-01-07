@@ -1,5 +1,5 @@
 import { CPU } from '../../src/glue/cpu-wrapper';
-import {was} from "../../src";
+import {wasm} from '../utils/avr8js-module';
 // import { avrInstruction } from './instruction';
 import { assemble } from '../utils/assembler';
 
@@ -43,14 +43,14 @@ const SREG_H = 0b00100000;
 const SREG_I = 0b10000000;
 
 function avrInstruction(cpu: CPU) {
-  was.exports.avrInstruction(cpu.ptr)  
+  wasm.exports.avrInstruction(cpu.ptr)
 }
 
 describe('avrInstruction', () => {
   let cpu: CPU;
 
   beforeEach(() => {
-    cpu = new CPU(was, new Uint16Array(0x8000));
+    cpu = new CPU(wasm, new Uint16Array(0x8000));
   });
 
   function loadProgram(...instructions: string[]) {
@@ -202,7 +202,7 @@ describe('avrInstruction', () => {
   });
 
   it('should push 3-byte return address when executing `CALL` instruction on device with >128k flash', () => {
-    cpu = new CPU(was, new Uint16Array(0x20000));
+    cpu = new CPU(wasm, new Uint16Array(0x20000));
     loadProgram('CALL 0xb8');
     cpu.data[SPH] = 0;
     cpu.data[SP] = 150;
@@ -271,7 +271,7 @@ describe('avrInstruction', () => {
   });
 
   it('should execute `EICALL` instruction', () => {
-    cpu = new CPU(was, new Uint16Array(0x20000));
+    cpu = new CPU(wasm, new Uint16Array(0x20000));
     loadProgram('EICALL');
     cpu.data[SPH] = 0;
     cpu.data[SP] = 0x80;
@@ -285,7 +285,7 @@ describe('avrInstruction', () => {
   });
 
   it('should execute `EIJMP` instruction', () => {
-    cpu = new CPU(was, new Uint16Array(0x20000));
+    cpu = new CPU(wasm, new Uint16Array(0x20000));
     loadProgram('EIJMP');
     cpu.data[EIND] = 1;
     cpu.dataView.setUint16(Z, 0x1040, true);
@@ -295,7 +295,7 @@ describe('avrInstruction', () => {
   });
 
   it('should execute `ELPM` instruction', () => {
-    cpu = new CPU(was, new Uint16Array(0x20000));
+    cpu = new CPU(wasm, new Uint16Array(0x20000));
     loadProgram('ELPM');
     cpu.data[Z] = 0x50;
     cpu.data[RAMPZ] = 0x2;
@@ -307,7 +307,7 @@ describe('avrInstruction', () => {
   });
 
   it('should execute `ELPM r5, Z` instruction', () => {
-    cpu = new CPU(was, new Uint16Array(0x20000));
+    cpu = new CPU(wasm, new Uint16Array(0x20000));
     loadProgram('ELPM r5, Z');
     cpu.data[Z] = 0x11;
     cpu.data[RAMPZ] = 0x1;
@@ -319,7 +319,7 @@ describe('avrInstruction', () => {
   });
 
   it('should execute `ELPM r6, Z+` instruction', () => {
-    cpu = new CPU(was, new Uint16Array(0x20000));
+    cpu = new CPU(wasm, new Uint16Array(0x20000));
     loadProgram('ELPM r6, Z+');
     cpu.dataView.setUint16(Z, 0xffff, true);
     cpu.data[RAMPZ] = 0x2;
@@ -333,7 +333,7 @@ describe('avrInstruction', () => {
   });
 
   it('should clamp RAMPZ when executing `ELPM r6, Z+` instruction', () => {
-    cpu = new CPU(was, new Uint16Array(0x20000));
+    cpu = new CPU(wasm, new Uint16Array(0x20000));
     loadProgram('ELPM r6, Z+');
     cpu.dataView.setUint16(Z, 0xffff, true);
     cpu.data[RAMPZ] = 0x3;
@@ -354,7 +354,7 @@ describe('avrInstruction', () => {
   });
 
   it('should push 3-byte return address when executing `ICALL` instruction on device with >128k flash', () => {
-    cpu = new CPU(was, new Uint16Array(0x20000));
+    cpu = new CPU(wasm, new Uint16Array(0x20000));
     loadProgram('ICALL');
     cpu.data[SPH] = 0;
     cpu.data[SP] = 0x80;
@@ -779,7 +779,7 @@ describe('avrInstruction', () => {
   });
 
   it('should push 3-byte return address when executing `RCALL` instruction on device with >128k flash', () => {
-    cpu = new CPU(was, new Uint16Array(0x20000));
+    cpu = new CPU(wasm, new Uint16Array(0x20000));
     loadProgram('RCALL 6');
     cpu.data[SPH] = 0;
     cpu.data[SP] = 0x80;
@@ -803,7 +803,7 @@ describe('avrInstruction', () => {
   });
 
   it('should execute `RET` instruction on device with >128k flash', () => {
-    cpu = new CPU(was, new Uint16Array(0x20000));
+    cpu = new CPU(wasm, new Uint16Array(0x20000));
     loadProgram('RET');
     cpu.data[SPH] = 0;
     cpu.data[SP] = 0x90;
@@ -828,7 +828,7 @@ describe('avrInstruction', () => {
   });
 
   it('should execute `RETI` instruction on device with >128k flash', () => {
-    cpu = new CPU(was, new Uint16Array(0x20000));
+    cpu = new CPU(wasm, new Uint16Array(0x20000));
     loadProgram('RETI');
     cpu.data[SPH] = 0;
     cpu.data[SP] = 0xc0;

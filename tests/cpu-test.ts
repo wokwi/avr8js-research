@@ -1,4 +1,4 @@
-import {was, writeHooks} from "../src";
+import {wasm, writeHooks} from "../src";
 import {loadBlink} from "../src/compile/programs";
 import {CPU} from '../src/glue/cpu-wrapper';
 import {loadHexBytes} from "../src/compile/compile";
@@ -8,7 +8,7 @@ import {performance} from "perf_hooks";
 
 const Suite = Benchmark.Suite
 
-const assembly = was.exports
+const assembly = wasm.exports
 const avr8js = assembly.avr8js
 
 export function runTest() {
@@ -103,7 +103,7 @@ export function compareCPUs() {
 }
 
 function runWrapper(program: Uint16Array, cycles: number = 2000) {
-    const cpu = new CPU(was, program);
+    const cpu = new CPU(wasm, program);
     // logAvrState(cpu)
     const startTime = performance.now();
     cpu.runProgram(cycles);
