@@ -1,5 +1,5 @@
 import type * as MyModule from "../build/module";
-import {ASUtil, ResultObject, instantiateSync} from "@assemblyscript/loader";
+import {ASUtil, ResultObject, instantiateSync} from "@assemblyscript/loader/umd";
 import {readFileSync} from "fs";
 
 export const writeHooks = {}
