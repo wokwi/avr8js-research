@@ -9,7 +9,8 @@
     "arduino:compile": "node src/compile",
     "compile&test": "npm run asbuild:untouched && npm run test",
     "ino:compile&test": "npm run arduino:compile && npm run test",
-    "jest": "jest"
+    "jest": "jest",
+    "as-pect": "asp"
   },
   "dependencies": {
     "@assemblyscript/loader": "^0.19.21",
