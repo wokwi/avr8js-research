@@ -18,7 +18,11 @@ export namespace avr8js {
         }
     }
 
-    export function getProgMem(cpu: CPU) : Uint16Array {
+    export function getProgBytes(cpu: CPU): Uint8Array {
+        return cpu.progBytes
+    }
+
+    export function getProgMem(cpu: CPU): Uint16Array {
         return cpu.progMem
     }
 

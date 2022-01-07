@@ -21,9 +21,14 @@ export class CPU {
         this.dataView = new DataView(this.data.buffer)
     }
 
+    get progBytes(): Uint8Array {
+        const progPtr = this.avr8js.getProgBytes(this.ptr);
+        return this.loader.__getUint8ArrayView(progPtr);
+    }
+
     get progMem(): Uint16Array {
         const progPtr = this.avr8js.getProgMem(this.ptr);
-        return this.loader.__getUint16ArrayView(progPtr)
+        return this.loader.__getUint16ArrayView(progPtr);
     }
 
     get pc(): u32 {
