@@ -44,6 +44,34 @@ interface AVRClockEventEntry {
     next: AVRClockEventEntry | null;
 }
 
+class AVRClockEventEntryImpl implements AVRClockEventEntry {
+    private readonly _callback: AVRClockEventCallback;
+    private readonly _cycles: u64;
+    private _next: AVRClockEventEntry | null;
+
+    constructor(cycles: u64, callback: AVRClockEventCallback, next: AVRClockEventEntry | null = null) {
+        this._cycles = cycles;
+        this._callback = callback;
+        this._next = next;
+    }
+
+    get callback(): AVRClockEventCallback {
+        return this._callback;
+    }
+
+    get cycles(): u64 {
+        return this._cycles;
+    }
+
+    get next(): AVRClockEventEntry | null {
+        return this._next
+    }
+
+    set next(value: AVRClockEventEntry | null) {
+        this._next = value
+    }
+}
+
 export class CPU {
     // @ts-ignore
     readonly data: Uint8Array = new Uint8Array(<i32>(this.sramBytes + registerSpace));
