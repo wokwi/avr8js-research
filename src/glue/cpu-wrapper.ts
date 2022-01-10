@@ -35,6 +35,10 @@ export class CPU {
         return this.avr8js.getPC(this.ptr)
     }
 
+    set pc(value: u32) {
+        this.avr8js.setSP(this.ptr, value)
+    }
+
     get cycles(): u32 {
         return this.avr8js.getCycles(this.ptr)
     }
@@ -65,6 +69,10 @@ export class CPU {
 
     get SREG(): u8 {
         return this.avr8js.getSREG(this.ptr);
+    }
+
+    get pc22Bits(): boolean {
+        return this.avr8js.getPC22Bits(this.ptr) == true;
     }
 
     //TODO Implement following
@@ -106,6 +114,10 @@ export class CPU {
 
     tick(): void {
         this.avr8js.tick(this.ptr);
+    }
+
+    avrInterrupt(addr : u8) {
+        this.avr8js.avrInterrupt(this.ptr, addr);
     }
 
     runProgram(cycles = 5000) {
