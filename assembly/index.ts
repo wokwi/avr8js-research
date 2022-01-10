@@ -4,6 +4,8 @@ import {Class} from "./tests/class";
 export * from './tests/class';
 export * from './glue/cpu-exporter';
 export * from './avr8js/cpu/instruction';
+export {CPU} from './avr8js/cpu/cpu';
+export {AVRInterruptConfigImpl} from './avr8js/cpu/interfaces';
 import {compileInstruction} from "./compiler/instruction-compiler";
 
 // CPU specific
