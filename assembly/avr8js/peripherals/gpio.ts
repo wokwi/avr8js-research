@@ -7,7 +7,8 @@
  *
  * v0.18.2 - Modified by Dario Götze
  */
-import {AVRInterruptConfig, CPU} from '../cpu/cpu';
+import {CPU} from '../cpu/cpu';
+import {AVRInterruptConfig} from "../cpu/interfaces";
 
 export interface AVRExternalInterrupt {
     EICRA: u8;
