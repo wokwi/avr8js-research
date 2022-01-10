@@ -203,7 +203,7 @@ export class CPU {
         this.updateNextInterrupt();
     }
 
-    clearInterruptByFlag(interrupt: AVRInterruptConfig, registerValue: number): void {
+    clearInterruptByFlag(interrupt: AVRInterruptConfig, registerValue: u8): void {
         if (registerValue & interrupt.flagMask) {
             this.data[interrupt.flagRegister] &= ~interrupt.flagMask;
             this.clearInterrupt(interrupt);
@@ -212,13 +212,13 @@ export class CPU {
 
     addClockEvent(callback: AVRClockEventCallback, cycles: u64): AVRClockEventCallback {
         const clockEventPool: AVRClockEventEntry[] = this.clockEventPool;
-        cycles = this.cycles + Math.max(1, cycles);
+        cycles = this.cycles + (cycles > 1 ? cycles : 1);
         const maybeEntry = clockEventPool.pop();
-        const entry: AVRClockEventEntry = maybeEntry != null ? maybeEntry : {cycles, callback, next: null};
+        const entry: AVRClockEventEntry = maybeEntry != null ? maybeEntry : new AVRClockEventEntryImpl(cycles, callback);
         entry.cycles = cycles;
         entry.callback = callback;
         let clockEvent = this.nextClockEvent;
-        let lastItem = null;
+        let lastItem: AVRClockEventEntry | null = null;
         while (clockEvent && clockEvent.cycles < cycles) {
             lastItem = clockEvent;
             clockEvent = clockEvent.next;
@@ -247,7 +247,7 @@ export class CPU {
             return false;
         }
         const clockEventPool = this.clockEventPool;
-        let lastItem = null;
+        let lastItem: AVRClockEventEntry | null = null;
         while (clockEvent) {
             if (clockEvent.callback === callback) {
                 if (lastItem) {
