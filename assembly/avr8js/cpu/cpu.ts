@@ -9,7 +9,8 @@
 
 import {AVRIOPort} from '../peripherals/gpio';
 import {avrInterrupt} from './interrupt';
-import {AVRClockEventCallback, AVRInterruptConfig, CPUMemoryHooks, CPUMemoryReadHooks} from "./interfaces";
+import {AVRInterruptConfig, CPUMemoryHooks, CPUMemoryReadHooks} from "./interfaces";
+import {AVRClockEventCallback} from "../../../shared/avr8js/cpu/interfaces";
 
 const registerSpace = 0x100;
 

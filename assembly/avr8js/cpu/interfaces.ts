@@ -71,5 +71,3 @@ export class AVRInterruptConfigImpl implements AVRInterruptConfig {
         return this._inverseFlag;
     }
 }
-
-export type AVRClockEventCallback = () => void;
