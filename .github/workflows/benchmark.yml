@@ -15,11 +15,20 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - name: npm install, build, test
+      - name: Run builds - asbuild:optimized, tsc
         run: |
           npm ci
           npm run asbuild
           npm run tsc
+        env:
+          CI: true
+      - name: Run jest
+        run: |
+          npm run jest
+        env:
+          CI: true
+      - name: Run benchmark / tests
+        run: |
           npm run arduino:compile
           npm test
         env:
