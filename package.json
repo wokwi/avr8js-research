@@ -2,7 +2,7 @@
   "type": "commonjs",
   "scripts": {
     "asbuild:untouched": "asc assembly/index.ts -b build/untouched.wasm -t build/untouched.wat -d build/module.d.ts --sourceMap C://Users/xxred/IdeaProjects/avr8js-research/build/untouched.wasm.map --debug --exportRuntime",
-    "asbuild:optimized": "asc assembly/index.ts -b build/optimized.wasm -t build/optimized.wat --sourceMap --optimize --exportRuntime",
+    "asbuild:optimized": "asc assembly/index.ts -b build/optimized.wasm -t build/optimized.wat -d build/module.d.ts --sourceMap --optimize --exportRuntime",
     "asbuild": "npm run asbuild:untouched && npm run asbuild:optimized",
     "asbuild:watch": "onchange -i 'assembly/*' -- npm run asbuild",
     "tsc": "tsc --project tsconfig.json",
