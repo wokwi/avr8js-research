@@ -1,7 +1,8 @@
 import {CPU} from "../avr8js/cpu/cpu";
 import {avrInstruction} from "../avr8js/cpu/instruction";
 import {avrInterrupt as _avrInterrupt} from '../avr8js/cpu/interrupt';
-import {callWriteHook} from './cpu-bridge';
+import {callClockEventCallback, callWriteHook} from './cpu-bridge';
+import {AVRClockEventCallback} from "../../shared/avr8js/cpu/interfaces";
 
 export namespace avr8js {
 
@@ -81,5 +82,9 @@ export namespace avr8js {
 
     export function avrInterrupt(cpu: CPU, addr: u8): void {
         _avrInterrupt(cpu, addr);
+    }
+
+    export function addClockEvent(cpu : CPU, callbackId : u32, cycles : u32) : AVRClockEventCallback{
+        return cpu.addClockEvent(() => callClockEventCallback(0), cycles)
     }
 }

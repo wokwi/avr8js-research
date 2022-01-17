@@ -22,6 +22,8 @@ export class CPU {
     readonly data: Uint8Array;
     readonly dataView: DataView;
     readonly writeHooks = {};
+    nextClockEventId = 0;
+    readonly clockEventCallbacks: Array<AVRClockEventCallback> = new Array<AVRClockEventCallback>();
 
     constructor(program: Uint16Array, sramBytes: u32 = 8192) {
         this.wasm = this.instantiateWASM(modulePath);
@@ -44,8 +46,19 @@ export class CPU {
                 callWriteHook(value: number, oldValue: number, addr: number, mask: number): boolean {
                     return this.writeHooks[addr](value, oldValue, addr, mask)
                 },
+                callClockEventCallback(callbackId: u32) {
+                    this.clockEventCallbacks[callbackId].call()
+                },
             }
         })
+    }
+
+    // DG Maybe use u64 for cycles
+    addClockEvent(callback: AVRClockEventCallback, cycles: u32): AVRClockEventCallback {
+        const id = this.nextClockEventId;
+        this.clockEventCallbacks[id] = callback;
+        const cbkPtr = avr8js.addClockEvent(this.ptr, id, cycles);
+        return callback;
     }
 
     get progBytes(): Uint8Array {
@@ -127,10 +140,6 @@ export class CPU {
 
     }
 
-    addClockEvent(callback: AVRClockEventCallback, cycles: u32): AVRClockEventCallback {
-        return null
-    }
-
     updateClockEvent(callback: AVRClockEventCallback, cycles: u32): boolean {
         return false
     }
@@ -143,7 +152,7 @@ export class CPU {
         this.avr8js.tick(this.ptr);
     }
 
-    avrInterrupt(addr : u8) {
+    avrInterrupt(addr: u8) {
         this.avr8js.avrInterrupt(this.ptr, addr);
     }
 
