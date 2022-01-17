@@ -1,7 +1,7 @@
 import {CPU} from "../avr8js/cpu/cpu";
 import {avrInstruction} from "../avr8js/cpu/instruction";
-import {callWriteHook} from '../index';
 import {avrInterrupt as _avrInterrupt} from '../avr8js/cpu/interrupt';
+import {callWriteHook} from './cpu-bridge';
 
 export namespace avr8js {
 

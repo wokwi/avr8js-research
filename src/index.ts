@@ -10,8 +10,10 @@ export const wasm: ResultObject & { exports: ASUtil & typeof MyModule } = instan
     /* imports */
     index: {
         log: (ptr: number) => console.log('WASM-Log: ' + wasm.exports.__getString(ptr)),
-        callWriteHook(value: number, oldValue: number, addr: number, mask : number): boolean {
-            return writeHooks[addr](value, oldValue, addr, mask)
+        "cpu-bridge": {
+            callWriteHook(value: number, oldValue: number, addr: number, mask: number): boolean {
+                return writeHooks[addr](value, oldValue, addr, mask)
+            }
         }
     }
 })
