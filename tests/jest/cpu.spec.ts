@@ -1,17 +1,16 @@
 import {CPU} from '../../src/glue/cpu-wrapper';
-import {wasm} from '../utils/avr8js-module';
 
 type ITestEvent = [number, number]; // Expected cycles, actual cycles
 
 describe('cpu', () => {
     it('should set initial value of SP to the last byte of internal SRAM', () => {
-        const cpu = new CPU(wasm, new Uint16Array(1024), 0x1000);
+        const cpu = new CPU(new Uint16Array(1024), 0x1000);
         expect(cpu.SP).toEqual(0x10ff);
     });
 
     describe('events', () => {
         it('should execute queued events after the given number of cycles has passed', () => {
-            const cpu = new CPU(wasm, new Uint16Array(1024), 0x1000);
+            const cpu = new CPU(new Uint16Array(1024), 0x1000);
             const events: ITestEvent[] = [];
             for (const i of [1, 4, 10]) {
                 cpu.addClockEvent(() => events.push([i, cpu.cycles]), i);
@@ -28,7 +27,7 @@ describe('cpu', () => {
         });
 
         it('should correctly sort the events when added in reverse order', () => {
-            const cpu = new CPU(wasm, new Uint16Array(1024), 0x1000);
+            const cpu = new CPU(new Uint16Array(1024), 0x1000);
             const events: ITestEvent[] = [];
             for (const i of [10, 4, 1]) {
                 cpu.addClockEvent(() => events.push([i, cpu.cycles]), i);
@@ -46,7 +45,7 @@ describe('cpu', () => {
 
         describe('updateClockEvent', () => {
             it('should update the number of cycles for the given clock event', () => {
-                const cpu = new CPU(wasm, new Uint16Array(1024), 0x1000);
+                const cpu = new CPU(new Uint16Array(1024), 0x1000);
                 const events: ITestEvent[] = [];
                 const callbacks = [];
                 for (const i of [1, 4, 10]) {
@@ -67,7 +66,7 @@ describe('cpu', () => {
 
             describe('clearClockEvent', () => {
                 it('should remove the given clock event', () => {
-                    const cpu = new CPU(wasm, new Uint16Array(1024), 0x1000);
+                    const cpu = new CPU(new Uint16Array(1024), 0x1000);
                     const events: ITestEvent[] = [];
                     const callbacks = [];
                     for (const i of [1, 4, 10]) {
@@ -85,7 +84,7 @@ describe('cpu', () => {
                 });
 
                 it('should return false if the provided clock event is not scheduled', () => {
-                    const cpu = new CPU(wasm, new Uint16Array(1024), 0x1000);
+                    const cpu = new CPU(new Uint16Array(1024), 0x1000);
                     const event4 = cpu.addClockEvent(() => 0, 4);
                     const event10 = cpu.addClockEvent(() => 0, 10);
                     cpu.addClockEvent(() => 0, 1);

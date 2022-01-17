@@ -103,7 +103,7 @@ export function compareCPUs() {
 }
 
 function runWrapper(program: Uint16Array, cycles: number = 2000) {
-    const cpu = new CPU(wasm, program);
+    const cpu = new CPU(program);
     // logAvrState(cpu)
     const startTime = performance.now();
     cpu.runProgram(cycles);

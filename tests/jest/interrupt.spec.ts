@@ -1,10 +1,9 @@
 import { CPU } from '../../src/glue/cpu-wrapper';
-import {wasm} from '../utils/avr8js-module';
 import {REGISTERS as R, SREG_FLAGS as SREG} from "./helper";
 
 describe('avrInterrupt', () => {
   it('should execute interrupt handler', () => {
-    const cpu = new CPU(wasm, new Uint16Array(0x8000));
+    const cpu = new CPU(new Uint16Array(0x8000));
     expect<boolean>(cpu.pc22Bits).toEqual(false);
 
     cpu.pc = 0x520;
@@ -21,7 +20,7 @@ describe('avrInterrupt', () => {
   });
 
   it('should push a 3-byte return address when running in 22-bit PC mode (issue #58)', () => {
-    const cpu = new CPU(wasm, new Uint16Array(0x80000));
+    const cpu = new CPU(new Uint16Array(0x80000));
     expect<boolean>(cpu.pc22Bits).toEqual(true);
 
     cpu.pc = 0x10520;

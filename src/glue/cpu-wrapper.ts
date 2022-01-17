@@ -1,24 +1,51 @@
 import {ASUtil, ResultObject} from "@assemblyscript/loader";
 import * as MyModule from "../../build/module";
-import {avr8js, AVRInterruptConfigImpl as AVRInterruptConfig, u16, u32, u8} from "../../build/module";
+import {
+    avr8js,
+    AVRInterruptConfigImpl as AVRInterruptConfig,
+    u16,
+    u32,
+    u8
+} from "../../build/module";
 import {AVRClockEventCallback} from "../../shared/avr8js/cpu/interfaces";
+import {readFileSync} from "fs";
+import {instantiateSync} from "@assemblyscript/loader/umd";
+
+const modulePath = __dirname + "/../../build/untouched.wasm"
 
 export class CPU {
 
+    readonly wasm: ResultObject & { exports: ASUtil & typeof MyModule; };
     readonly loader: ASUtil & typeof MyModule;
     readonly avr8js: typeof avr8js;
     readonly ptr: number;
     readonly data: Uint8Array;
     readonly dataView: DataView;
+    readonly writeHooks = {};
 
-    constructor(private wasm: ResultObject & { exports: ASUtil & typeof MyModule }, program: Uint16Array, sramBytes: u32 = 8192) {
-        this.loader = wasm.exports;
+    constructor(program: Uint16Array, sramBytes: u32 = 8192) {
+        this.wasm = this.instantiateWASM(modulePath);
+        this.loader = this.wasm.exports;
         this.avr8js = this.loader.avr8js;
 
         const bufRef = this.loader.__newArrayBuffer(program.buffer);
         this.ptr = this.avr8js.newCPU(bufRef, sramBytes);
         this.data = this.loader.__getUint8ArrayView(this.avr8js.getData(this.ptr));
         this.dataView = new DataView(this.data.buffer, this.data.byteOffset, this.data.byteLength);
+    }
+
+    private instantiateWASM(modulePath: string): ResultObject & { exports: ASUtil & typeof MyModule } {
+        return instantiateSync<typeof MyModule>(readFileSync(modulePath), {
+            /* imports */
+            index: {
+                log: (ptr: number) => console.log('WASM-Log: ' + this.wasm.exports.__getString(ptr)),
+            },
+            "cpu-bridge": {
+                callWriteHook(value: number, oldValue: number, addr: number, mask: number): boolean {
+                    return this.writeHooks[addr](value, oldValue, addr, mask)
+                },
+            }
+        })
     }
 
     get progBytes(): Uint8Array {
