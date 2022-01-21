@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2019, Uri Shaked
  *
- * v0.18.2 - Modified by Dario Götze
+ * v0.18.4 - Modified by Dario Götze
  */
 
 import {AVRIOPort} from '../peripherals/gpio';
@@ -155,7 +155,8 @@ export class CPU {
 
     updateInterruptEnable(interrupt: AVRInterruptConfig, registerValue: u8): void {
         if (registerValue & interrupt.enableMask) {
-            if (this.data[interrupt.flagRegister] & interrupt.flagMask) {
+            const bitSet = this.data[interrupt.flagRegister] & interrupt.flagMask;
+            if (interrupt.inverseFlag ? !bitSet : bitSet) {
                 this.queueInterrupt(interrupt);
             }
         } else {
