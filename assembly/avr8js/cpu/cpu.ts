@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2019, Uri Shaked
  *
- * v0.18.4 - Modified by Dario Götze
+ * v0.18.8 - Modified by Dario Götze
  */
 
 import {AVRIOPort} from '../peripherals/gpio';
@@ -13,6 +13,7 @@ import {AVRInterruptConfig, CPUMemoryHooks, CPUMemoryReadHooks} from "./interfac
 import {AVRClockEventCallback} from "../../../shared/avr8js/cpu/interfaces";
 
 const registerSpace = 0x100;
+const MAX_INTERRUPTS = 128; // Enough for ATMega2560
 
 interface AVRClockEventEntry {
     cycles: u64;
@@ -57,7 +58,7 @@ export class CPU {
     readonly progBytes: Uint8Array = Uint8Array.wrap(this.progMem.buffer);
     readonly readHooks: CPUMemoryReadHooks = new CPUMemoryReadHooks();
     readonly writeHooks: CPUMemoryHooks = new CPUMemoryHooks();
-    private readonly pendingInterrupts: AVRInterruptConfig[] = [];
+    private readonly pendingInterrupts: (AVRInterruptConfig | null)[] = new Array(MAX_INTERRUPTS);
     private nextClockEvent: AVRClockEventEntry | null = null;
     private readonly clockEventPool: AVRClockEventEntry[] = []; // helps avoid garbage collection
 
@@ -88,6 +89,7 @@ export class CPU {
     cycles: u64 = 0;
 
     nextInterrupt: i16 = -1;
+    maxInterrupt: i16 = 0;
 
     constructor(public progMem: Uint16Array, private sramBytes: u64 = 8192) {
         this.reset();
@@ -97,7 +99,7 @@ export class CPU {
         this.data.fill(0);
         this.SP = <u16>this.data.length - 1;
         this.pc = 0;
-        this.pendingInterrupts.splice(0, this.pendingInterrupts.length);
+        this.pendingInterrupts.fill(null);
         this.nextInterrupt = -1;
         this.nextClockEvent = null;
     }
@@ -137,11 +139,6 @@ export class CPU {
         return !!(this.SREG & 0x80);
     }
 
-    // TODO DG Check pendingInterrupts handling. Cast from i32 to i16.
-    private updateNextInterrupt(): void {
-        this.nextInterrupt = i16(this.pendingInterrupts.findIndex((item) => !!item));
-    }
-
     setInterruptFlag(interrupt: AVRInterruptConfig): void {
         if (interrupt.inverseFlag) {
             this.data[interrupt.flagRegister] &= ~interrupt.flagMask;
@@ -165,19 +162,36 @@ export class CPU {
     }
 
     queueInterrupt(interrupt: AVRInterruptConfig): void {
-        this.pendingInterrupts[interrupt.address] = interrupt;
-        this.updateNextInterrupt();
+        const address : i16 = i16(interrupt.address);
+        this.pendingInterrupts[address] = interrupt;
+        if (this.nextInterrupt === -1 || this.nextInterrupt > address) {
+            this.nextInterrupt = address;
+        }
+        if (address > this.maxInterrupt) {
+            this.maxInterrupt = address;
+        }
     }
 
-    // TODO check correctness. DG Replaced delete with splice.
     clearInterrupt(interruptConfig: AVRInterruptConfig, clearFlag: boolean = true): void {
-        const index = this.pendingInterrupts.indexOf(interruptConfig, 0);
-        if (index > -1) this.pendingInterrupts.splice(index, 1);
-        // delete this.pendingInterrupts[interruptConfig.address];
+        const address : i16 = i16(interruptConfig.address);
+        const pendingInterrupts = this.pendingInterrupts;
+        const maxInterrupt = this.maxInterrupt;
         if (clearFlag) {
             this.data[interruptConfig.flagRegister] &= ~interruptConfig.flagMask;
         }
-        this.updateNextInterrupt();
+        if (!pendingInterrupts[address]) {
+            return;
+        }
+        pendingInterrupts[address] = null;
+        if (this.nextInterrupt === address) {
+            this.nextInterrupt = -1;
+            for (let i = address + 1; i <= maxInterrupt; i++) {
+                if (pendingInterrupts[i]) {
+                    this.nextInterrupt = i;
+                    break;
+                }
+            }
+        }
     }
 
     clearInterruptByFlag(interrupt: AVRInterruptConfig, registerValue: u8): void {
@@ -255,7 +269,8 @@ export class CPU {
 
         const nextInterrupt = this.nextInterrupt;
         if (this.interruptsEnabled && nextInterrupt >= 0) {
-            const interrupt = this.pendingInterrupts[nextInterrupt];
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const interrupt = this.pendingInterrupts[nextInterrupt]!;
             avrInterrupt(this, interrupt.address);
             if (!interrupt.constant) {
                 this.clearInterrupt(interrupt);
