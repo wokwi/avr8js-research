@@ -3,11 +3,12 @@ import * as MyModule from "../../build/module";
 import {
     avr8js,
     AVRInterruptConfigImpl as AVRInterruptConfig,
+    AVRInterruptConfigImpl,
+    CPU as WACPU,
     u16,
     u32,
     u8,
-    CPU as WACPU,
-    u64, AVRInterruptConfigImpl
+    usize
 } from "../../build/module";
 import {AVRClockEventCallback} from "../../shared/avr8js/cpu/interfaces";
 import {readFileSync} from "fs";
@@ -26,6 +27,7 @@ export class CPU {
     nextClockEventId = 0;
     readonly clockEventCallbacks: Array<AVRClockEventCallback> = new Array<AVRClockEventCallback>();
     readonly cpu: WACPU;
+    readonly cpuPtr: usize;
 
     constructor(program: Uint16Array, sramBytes: u32 = 8192) {
         this.wasm = this.instantiateWASM(modulePath);
@@ -33,10 +35,10 @@ export class CPU {
         this.avr8js = this.loader.avr8js;
 
         const programArray = this.loader.__newArray(this.avr8js.Uint16Array_ID, program)
-        const cpuPtr = this.avr8js.newCPU(programArray, BigInt(sramBytes));
+        this.cpuPtr = this.avr8js.newCPU(programArray, BigInt(sramBytes));
         // Instantiation with this.loader.CPU(programArray, sramBytes) causes unreachable exception
         // Maybe because the optional bigint sramBytes
-        this.cpu = this.loader.CPU.wrap(cpuPtr);
+        this.cpu = this.loader.CPU.wrap(this.cpuPtr);
         this.data = this.loader.__getUint8ArrayView(this.cpu.data);
         this.dataView = new DataView(this.data.buffer, this.data.byteOffset, this.data.byteLength);
     }
@@ -166,7 +168,7 @@ export class CPU {
     addClockEvent(callback: AVRClockEventCallback, cycles: u32): AVRClockEventCallback {
         const id = this.nextClockEventId;
         this.clockEventCallbacks[id] = callback;
-        const cbkPtr = avr8js.addClockEvent(this.cpu.valueOf(), id, cycles);
+        const cbkPtr = avr8js.addClockEvent(this.cpuPtr, id, cycles);
         return callback;
     }
 
@@ -185,15 +187,15 @@ export class CPU {
     // External functions
 
     avrInterrupt(addr: u8) {
-        this.avr8js.avrInterrupt(this.cpu.valueOf(), addr);
+        this.avr8js.avrInterrupt(this.cpuPtr, addr);
     }
 
     runProgram(cycles = 5000) {
-        this.avr8js.runProgram(this.cpu.valueOf(), cycles);
+        this.avr8js.runProgram(this.cpuPtr, cycles);
     }
 
     avrInstruction() {
-        this.loader.avrInstruction(this.cpu.valueOf());
+        this.loader.avrInstruction(this.cpuPtr);
     }
 
 }
