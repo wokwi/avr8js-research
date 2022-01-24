@@ -1,6 +1,7 @@
 import type * as MyModule from "../../build/module";
 import {ASUtil, ResultObject, instantiateSync} from "@assemblyscript/loader/umd";
 import {readFileSync} from "fs";
+import {u32} from "../../build/module";
 
 const modulePath = __dirname + "/../../build/untouched.wasm"
 export const writeHooks = {}
@@ -14,6 +15,9 @@ export const wasm: ResultObject & { exports: ASUtil & typeof MyModule } = instan
     "cpu-bridge":{
         callWriteHook(value: number, oldValue: number, addr: number, mask: number): boolean {
             return writeHooks[addr](value, oldValue, addr, mask)
+        },
+        callClockEventCallback(callbackId: u32) {
+            // NO-OP
         }
     }
 })
