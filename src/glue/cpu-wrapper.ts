@@ -163,4 +163,8 @@ export class CPU {
         this.avr8js.runProgram(this.ptr, cycles);
     }
 
+    avrInstruction() {
+        this.loader.avrInstruction(this.ptr);
+    }
+
 }

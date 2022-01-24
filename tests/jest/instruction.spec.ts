@@ -1,6 +1,4 @@
 import { CPU } from '../../src/glue/cpu-wrapper';
-import {wasm} from '../utils/avr8js-module';
-// import { avrInstruction } from './instruction';
 import { assemble } from '../utils/assembler';
 
 const r0 = 0;
@@ -43,7 +41,7 @@ const SREG_H = 0b00100000;
 const SREG_I = 0b10000000;
 
 function avrInstruction(cpu: CPU) {
-  wasm.exports.avrInstruction(cpu.ptr)
+  cpu.avrInstruction()
 }
 
 describe('avrInstruction', () => {
