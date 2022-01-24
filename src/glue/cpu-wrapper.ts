@@ -25,7 +25,7 @@ export class CPU {
     readonly writeHooks = {};
     nextClockEventId = 0;
     readonly clockEventCallbacks: Array<AVRClockEventCallback> = new Array<AVRClockEventCallback>();
-    readonly wasmCpu: WACPU;
+    readonly cpu: WACPU;
 
     constructor(program: Uint16Array, sramBytes: u32 = 8192) {
         this.wasm = this.instantiateWASM(modulePath);
@@ -34,8 +34,8 @@ export class CPU {
 
         const bufRef = this.loader.__newArrayBuffer(program.buffer);
         this.ptr = this.avr8js.newCPU(bufRef, sramBytes);
-        this.wasmCpu = this.loader.CPU.wrap(this.ptr)
-        this.data = this.loader.__getUint8ArrayView(this.avr8js.getData(this.ptr));
+        this.cpu = this.loader.CPU.wrap(this.ptr)
+        this.data = this.loader.__getUint8ArrayView(this.cpu.data);
         this.dataView = new DataView(this.data.buffer, this.data.byteOffset, this.data.byteLength);
     }
 
