@@ -19,7 +19,10 @@ module.exports = {
             'node_modules/(?!@assemblyscript)'
         ],
     },
-    moduleFileExtensions: [...defaults.moduleFileExtensions, 'd.ts']
+    moduleFileExtensions: [...defaults.moduleFileExtensions, 'd.ts'],
+    testPathIgnorePatterns : [
+        "<rootDir>/tests/jest/cpu.spec"
+    ]
     // moduleNameMapper: {
     //   '^(\\.{1,2}/.*)\\.js$': '$1',
     // },
