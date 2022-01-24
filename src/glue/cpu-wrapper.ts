@@ -27,13 +27,13 @@ export class CPU {
     readonly clockEventCallbacks: Array<AVRClockEventCallback> = new Array<AVRClockEventCallback>();
     readonly cpu: WACPU;
 
-    constructor(program: Uint16Array, sramBytes: u64 = 8192n) {
+    constructor(program: Uint16Array, sramBytes: u32 = 8192) {
         this.wasm = this.instantiateWASM(modulePath);
         this.loader = this.wasm.exports;
         this.avr8js = this.loader.avr8js;
 
         const programArray = this.loader.__newArray(this.avr8js.Uint16Array_ID, program)
-        const cpuPtr = this.avr8js.newCPU(programArray, sramBytes);
+        const cpuPtr = this.avr8js.newCPU(programArray, BigInt(sramBytes));
         // Instantiation with this.loader.CPU(programArray, sramBytes) causes unreachable exception
         // Maybe because the optional bigint sramBytes
         this.cpu = this.loader.CPU.wrap(cpuPtr);
