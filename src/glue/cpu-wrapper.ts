@@ -190,7 +190,7 @@ export class CPU {
         this.avr8js.avrInterrupt(this.cpuPtr, addr);
     }
 
-    runProgram(cycles = 5000) {
+    runProgram(cycles: u32 = 5000) {
         this.avr8js.runProgram(this.cpuPtr, cycles);
     }
 
