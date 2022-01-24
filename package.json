@@ -30,9 +30,10 @@
     "assemblyscript": "^0.19.22",
     "benchmark": "^2.1.4",
     "jest": "^27.4.7",
+    "jest-config": "^27.4.7",
+    "npm-check-updates": "^12.1.0",
     "onchange": "^7.1.0",
     "ts-jest": "^27.1.2",
-    "typescript": "^4.5.4",
-    "npm-check-updates": "^12.1.0"
+    "typescript": "^4.5.4"
   }
 }

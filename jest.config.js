@@ -3,22 +3,24 @@
  * https://jestjs.io/docs/configuration
  */
 
+const {defaults} = require("jest-config");
 module.exports = {
-  preset: 'ts-jest',
-  testEnvironment: 'node',
-  globals: {
-    'ts-jest': {
-      // tsConfig: 'tsconfig.spec.json',
-      // useESM: true,
+    preset: 'ts-jest',
+    testEnvironment: 'node',
+    globals: {
+        'ts-jest': {
+            // tsConfig: 'tsconfig.spec.json',
+            // useESM: true,
+        },
+        transform: {
+            "\\.[jt]sx?$": "babel-jest"
+        },
+        transformIgnorePatterns: [
+            'node_modules/(?!@assemblyscript)'
+        ],
     },
-    transform:{
-      "\\.[jt]sx?$": "babel-jest"
-    },
-    transformIgnorePatterns: [
-      'node_modules/(?!@assemblyscript)'
-    ],
-  },
-  // moduleNameMapper: {
-  //   '^(\\.{1,2}/.*)\\.js$': '$1',
-  // },
+    moduleFileExtensions: [...defaults.moduleFileExtensions, 'd.ts']
+    // moduleNameMapper: {
+    //   '^(\\.{1,2}/.*)\\.js$': '$1',
+    // },
 };
