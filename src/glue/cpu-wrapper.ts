@@ -5,7 +5,8 @@ import {
     AVRInterruptConfigImpl as AVRInterruptConfig,
     u16,
     u32,
-    u8
+    u8,
+    CPU as WACPU
 } from "../../build/module";
 import {AVRClockEventCallback} from "../../shared/avr8js/cpu/interfaces";
 import {readFileSync} from "fs";
@@ -24,6 +25,7 @@ export class CPU {
     readonly writeHooks = {};
     nextClockEventId = 0;
     readonly clockEventCallbacks: Array<AVRClockEventCallback> = new Array<AVRClockEventCallback>();
+    readonly wasmCpu: WACPU;
 
     constructor(program: Uint16Array, sramBytes: u32 = 8192) {
         this.wasm = this.instantiateWASM(modulePath);
@@ -32,6 +34,7 @@ export class CPU {
 
         const bufRef = this.loader.__newArrayBuffer(program.buffer);
         this.ptr = this.avr8js.newCPU(bufRef, sramBytes);
+        this.wasmCpu = this.loader.CPU.wrap(this.ptr)
         this.data = this.loader.__getUint8ArrayView(this.avr8js.getData(this.ptr));
         this.dataView = new DataView(this.data.buffer, this.data.byteOffset, this.data.byteLength);
     }
