@@ -7,7 +7,7 @@ import {
     u32,
     u8,
     CPU as WACPU,
-    u64
+    u64, AVRInterruptConfigImpl
 } from "../../build/module";
 import {AVRClockEventCallback} from "../../shared/avr8js/cpu/interfaces";
 import {readFileSync} from "fs";
@@ -56,14 +56,6 @@ export class CPU {
                 },
             }
         })
-    }
-
-    // DG Maybe use u64 for cycles
-    addClockEvent(callback: AVRClockEventCallback, cycles: u32): AVRClockEventCallback {
-        const id = this.nextClockEventId;
-        this.clockEventCallbacks[id] = callback;
-        const cbkPtr = avr8js.addClockEvent(this.cpu.valueOf(), id, cycles);
-        return callback;
     }
 
     get progBytes(): Uint8Array {
@@ -118,29 +110,64 @@ export class CPU {
         return !!this.cpu.pc22Bits;
     }
 
-    //TODO Implement following
+    // Interrupts
+
     get interruptsEnabled(): boolean {
-        return false;
+        return !!this.cpu.interruptsEnabled
     }
 
     setInterruptFlag(interrupt: AVRInterruptConfig): void {
-
+        this.cpu.setInterruptFlag(this.convertToWASMInstancePointer(interrupt))
     }
 
     updateInterruptEnable(interrupt: AVRInterruptConfig, registerValue: u8): void {
-
+        this.cpu.updateInterruptEnable(this.convertToWASMInstancePointer(interrupt), registerValue);
     }
 
     queueInterrupt(interrupt: AVRInterruptConfig): void {
-
+        this.cpu.queueInterrupt(this.convertToWASMInstancePointer(interrupt));
     }
 
-    clearInterrupt(interruptConfig: AVRInterruptConfig, clearFlag: boolean = true): void {
-
+    clearInterrupt(interrupt: AVRInterruptConfig, clearFlag: boolean = true): void {
+        this.cpu.clearInterrupt(this.convertToWASMInstancePointer(interrupt), clearFlag);
     }
 
-    clearInterruptByFlag(interrupt: AVRInterruptConfig, registerValue: number): void {
+    clearInterruptByFlag(interrupt: AVRInterruptConfig, registerValue: u8): void {
+        this.cpu.clearInterruptByFlag(this.convertToWASMInstancePointer(interrupt), registerValue);
+    }
 
+    private convertToWASMInstancePointer(interrupt: AVRInterruptConfig) {
+        return this.convertToWASMInstance(interrupt).valueOf()
+    }
+
+    private convertToWASMInstance(interrupt: AVRInterruptConfig): AVRInterruptConfigImpl {
+        if (interrupt instanceof this.loader.AVRInterruptConfigImpl)
+            return interrupt;
+        else
+            // Create new instance if not an WASM instance
+            return this.newAVRInterruptConfigImpl(interrupt);
+    }
+
+    private newAVRInterruptConfigImpl(interrupt: AVRInterruptConfig) {
+        return new this.loader.AVRInterruptConfigImpl(
+            interrupt.address,
+            interrupt.enableRegister,
+            interrupt.enableMask,
+            interrupt.flagRegister,
+            interrupt.flagMask,
+            interrupt.constant,
+            interrupt.inverseFlag)
+    }
+
+    // ClockEvents
+
+    //TODO Implement following
+    // DG Maybe use u64 for cycles
+    addClockEvent(callback: AVRClockEventCallback, cycles: u32): AVRClockEventCallback {
+        const id = this.nextClockEventId;
+        this.clockEventCallbacks[id] = callback;
+        const cbkPtr = avr8js.addClockEvent(this.cpu.valueOf(), id, cycles);
+        return callback;
     }
 
     updateClockEvent(callback: AVRClockEventCallback, cycles: u32): boolean {
