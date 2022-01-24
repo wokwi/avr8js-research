@@ -2,7 +2,7 @@
 export * from './glue/cpu-exporter';
 export * from './avr8js/cpu/instruction';
 export {CPU} from './avr8js/cpu/cpu';
-export {AVRInterruptConfigImpl} from './avr8js/cpu/interfaces';
+export {AVRInterruptConfigImpl, CPUMemoryHooks, CPUMemoryHook, CPUMemoryReadHooks, CPUMemoryReadHook} from './avr8js/cpu/interfaces';
 
 export declare function log(value: string): void;
 
