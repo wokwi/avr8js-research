@@ -2,9 +2,10 @@ import {wasm, writeHooks} from "../src";
 import {loadBlink} from "../src/compile/programs";
 import {CPU} from '../src/glue/cpu-wrapper';
 import {loadHexBytes} from "../src/compile/compile";
-import {avrInstruction, CPU as CPU2} from "avr8js";
+import {avrInstruction, CPU as jsCPU} from "avr8js";
 import * as Benchmark from "benchmark";
 import {performance} from "perf_hooks";
+import {u32} from "../build/module";
 
 const Suite = Benchmark.Suite
 
@@ -19,8 +20,9 @@ export function runTest() {
         resolve(program)
     })
         .then(newCPU)
-        .then((cpuPtr) => {
+        .then((cpu) => {
 
+            const cpuPtr = cpu.cpuPtr;
             //Add hook
             addWriteHook(cpuPtr, 0x23, (value, oldValue, addr, mask) => {
                 console.log('Got callback from addr: ' + addr + ' [' + value + ',' + oldValue + ']');
@@ -43,9 +45,9 @@ export function runTest() {
             // const testInstance = assembly.Class.wrap(assembly.newTestInstance());
             // console.log(assembly.__getString(testInstance.str));
 
-            logState(cpuPtr)
-            runProgram(cpuPtr, 1000);
-            logState(cpuPtr)
+            logState(cpu);
+            runProgram(cpu, 1000);
+            logState(cpu);
             // const difference = findDifferences(dataBefore, dataAfter);
             // console.log(difference)
         })
@@ -113,7 +115,7 @@ function runWrapper(program: Uint16Array, cycles: number = 2000) {
 }
 
 function runAvr(program: Uint16Array, cycles: number = 2000) {
-    const cpu = new CPU2(program);
+    const cpu = new jsCPU(program);
     // logAvrState(cpu)
     const startTime = performance.now();
     for (let i = 0; i < cycles; i++) {
@@ -124,7 +126,7 @@ function runAvr(program: Uint16Array, cycles: number = 2000) {
     logAvrState(cpu)
 }
 
-function logAvrState(cpu: CPU | CPU2) {
+function logAvrState(cpu: CPU | jsCPU) {
     const state = {
         data: cpu.data.reduce((value, next) => value + next),
         PC: cpu.pc,
@@ -137,12 +139,12 @@ function logAvrState(cpu: CPU | CPU2) {
     console.table(state)
 }
 
-function logState(cpuPtr: number) {
-    const data = getData(cpuPtr);
+function logState(cpu: CPU) {
+    const data = cpu.data;
     const state = {
         data: data.reduce((value, next) => value + next),
-        PC: avr8js.getPC(cpuPtr),
-        cycles: avr8js.getCycles(cpuPtr)
+        PC: cpu.pc,
+        cycles: cpu.cycles
     }
     console.table(state)
 }
@@ -151,23 +153,15 @@ function findDifferences(arr1: Uint32Array, arr2: Uint32Array): Uint32Array {
     return arr1.filter(x => !arr2.includes(x))
 }
 
-export function newCPU(program: Uint16Array): number {
+export function newCPU(program: Uint16Array): CPU {
     console.log('Setup CPU')
-    const bufRef = assembly.__newArrayBuffer(program.buffer);
-    const ptr = avr8js.newCPU(bufRef);
-    console.log('Setup CPU - finished.');
-    return ptr
+    return new CPU(program);
 }
 
-export function runProgram(cpuPtr: number, cycles: number) {
+export function runProgram(cpu: CPU, cycles: u32) {
     console.log('Run program for ' + cycles + " cycles");
-    avr8js.runProgram(cpuPtr, cycles);
-    console.log('Program executed.')
-}
-
-export function getData(cpuPtr: number): Uint8Array {
-    const ptr = avr8js.getData(cpuPtr);
-    return assembly.__getUint8ArrayView(ptr);
+    cpu.runProgram(cycles);
+    console.log('Program executed.');
 }
 
 export function addWriteHook(cpuPtr: number, addr: number, hook: (value: number, oldValue: number, addr: number, mask: number) => boolean) {
