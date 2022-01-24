@@ -6,12 +6,12 @@ import {AVRClockEventCallback} from "../../shared/avr8js/cpu/interfaces";
 
 export namespace avr8js {
 
-    export function getCPUClassId(): number {
-        return idof<CPU>();
-    }
+    export const CPU_ID = idof<CPU>()
 
-    export function newCPU(program: ArrayBuffer, sramBytes: u32 = 8192): CPU {
-        return new CPU(Uint16Array.wrap(program), sramBytes)
+    export const Uint16Array_ID = idof<Uint16Array>()
+
+    export function newCPU(program: Uint16Array, sramBytes: u64 = 8192): CPU {
+        return new CPU(program, sramBytes);
     }
 
     export function runProgram(cpu: CPU, cycles: u32 = 50000): void {
