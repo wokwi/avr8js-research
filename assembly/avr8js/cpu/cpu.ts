@@ -212,8 +212,7 @@ export class CPU {
     addClockEvent(callback: AVRClockEventCallback, cycles: u64): AVRClockEventCallback {
         const clockEventPool: AVRClockEventEntry[] = this.clockEventPool;
         cycles = this.cycles + (cycles > 1 ? cycles : 1);
-        const maybeEntry = clockEventPool.pop();
-        const entry: AVRClockEventEntry = maybeEntry != null ? maybeEntry : new AVRClockEventEntryImpl(cycles, callback);
+        const entry: AVRClockEventEntry = clockEventPool.length != 0 ? clockEventPool.pop() : new AVRClockEventEntryImpl(cycles, callback);
         entry.cycles = cycles;
         entry.callback = callback;
         let clockEvent = this.nextClockEvent;
