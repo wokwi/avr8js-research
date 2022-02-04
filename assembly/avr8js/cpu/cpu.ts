@@ -9,8 +9,7 @@
 
 import {AVRIOPort} from '../peripherals/gpio';
 import {avrInterrupt} from './interrupt';
-import {AVRInterruptConfig, CPUMemoryHooks, CPUMemoryReadHooks} from "./interfaces";
-import {AVRClockEventCallback} from "../../../shared/avr8js/cpu/interfaces";
+import {AVRInterruptConfig, CPUMemoryHooks, CPUMemoryReadHooks, AVRClockEventCallback} from "./interfaces";
 
 const registerSpace = 0x100;
 const MAX_INTERRUPTS = 128; // Enough for ATMega2560
@@ -267,7 +266,7 @@ export class CPU {
     tick(): void {
         const nextClockEvent = this.nextClockEvent;
         if (nextClockEvent && nextClockEvent.cycles <= this.cycles) {
-            nextClockEvent.callback();
+            nextClockEvent.callback.execute();
             this.nextClockEvent = nextClockEvent.next;
             if (this.clockEventPool.length < 10) {
                 this.clockEventPool.push(nextClockEvent);

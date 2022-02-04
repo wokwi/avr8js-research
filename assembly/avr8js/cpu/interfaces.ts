@@ -1,4 +1,6 @@
 // DG Removed '| void' for assembly script type safety
+import {callClockEventCallback} from "../../glue/cpu-bridge";
+
 export type CPUMemoryHook = (value: u8, oldValue: u8, addr: u16, mask: u8) => boolean;
 
 // DG Extends map to fix missing dictionary support
@@ -9,6 +11,19 @@ export type CPUMemoryReadHook = (addr: u16) => u8;
 
 // DG Extends map to fix missing dictionary support
 export class CPUMemoryReadHooks extends Map<u32, CPUMemoryReadHook> {
+}
+
+export interface AVRClockEventCallback {
+    execute(): void;
+}
+
+export class ExternalAVRClockEventCallback implements AVRClockEventCallback {
+    constructor(readonly callbackId: u32) {
+    }
+
+    execute(): void {
+        callClockEventCallback(this.callbackId);
+    }
 }
 
 export interface AVRInterruptConfig {
