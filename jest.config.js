@@ -20,9 +20,7 @@ module.exports = {
         ],
     },
     moduleFileExtensions: [...defaults.moduleFileExtensions, 'd.ts'],
-    testPathIgnorePatterns : [
-        "<rootDir>/tests/jest/cpu.spec"
-    ]
+    testPathIgnorePatterns : []
     // moduleNameMapper: {
     //   '^(\\.{1,2}/.*)\\.js$': '$1',
     // },

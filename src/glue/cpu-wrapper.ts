@@ -10,7 +10,7 @@ import {
     u8,
     usize
 } from "../../build/module";
-import {AVRClockEventCallback} from "../../shared/avr8js/cpu/interfaces";
+import {AVRClockEventCallback} from "./interfaces";
 import {readFileSync} from "fs";
 import {instantiateSync} from "@assemblyscript/loader/umd";
 
@@ -25,7 +25,8 @@ export class CPU {
     readonly dataView: DataView;
     readonly writeHooks = {};
     nextClockEventId = 0;
-    readonly clockEventCallbacks: Array<AVRClockEventCallback> = new Array<AVRClockEventCallback>();
+    readonly clockEventCallbacks: Map<u32, AVRClockEventCallback> = new Map<u32, AVRClockEventCallback>();
+    readonly clockEventCallbackPtrs: Map<AVRClockEventCallback, usize> = new Map<AVRClockEventCallback, u32>();
     readonly cpu: WACPU;
     readonly cpuPtr: usize;
 
@@ -50,12 +51,10 @@ export class CPU {
                 log: (ptr: number) => console.log('WASM-Log: ' + this.wasm.exports.__getString(ptr)),
             },
             "cpu-bridge": {
-                callWriteHook(value: number, oldValue: number, addr: number, mask: number): boolean {
+                callWriteHook: (value: number, oldValue: number, addr: number, mask: number): boolean => {
                     return this.writeHooks[addr](value, oldValue, addr, mask)
                 },
-                callClockEventCallback(callbackId: u32) {
-                    this.clockEventCallbacks[callbackId].call()
-                },
+                callClockEventCallback: (callbackId: u32) => this.clockEventCallbacks.get(callbackId)()
             }
         })
     }
@@ -163,21 +162,41 @@ export class CPU {
 
     // ClockEvents
 
-    //TODO Implement following
-    // DG Maybe use u64 for cycles
+    //TODO DG Replace u32 with u64 after refactoring of peripherals
+    /*
+      DG Maybe replace the initialization with glue function which creates
+      and adds the callback in one go.
+     */
     addClockEvent(callback: AVRClockEventCallback, cycles: u32): AVRClockEventCallback {
-        const id = this.nextClockEventId;
-        this.clockEventCallbacks[id] = callback;
-        const cbkPtr = avr8js.addClockEvent(this.cpuPtr, id, cycles);
+        const callbackId = this.nextClockEventId++;
+        this.clockEventCallbacks.set(callbackId, callback);
+        const callbackPtr = new this.loader.ExternalAVRClockEventCallback(callbackId).valueOf();
+        this.cpu.addClockEvent(callbackPtr, BigInt(cycles));
+        this.clockEventCallbackPtrs.set(callback, callbackPtr);
         return callback;
     }
 
+    //TODO DG Replace u32 with u64 after refactoring of peripherals
     updateClockEvent(callback: AVRClockEventCallback, cycles: u32): boolean {
-        return false
+        const ptr = this.getCallbackPtr(callback);
+        if (ptr) {
+            return !!this.cpu.updateClockEvent(ptr, BigInt(cycles));
+        }
+        return false;
     }
 
     clearClockEvent(callback: AVRClockEventCallback): boolean {
+        const ptr = this.getCallbackPtr(callback);
+        if (ptr) {
+            this.clockEventCallbacks.delete(ptr);
+            this.clockEventCallbackPtrs.delete(callback);
+            return !!this.cpu.clearClockEvent(ptr);
+        }
         return false
+    }
+
+    private getCallbackPtr(callback: AVRClockEventCallback): usize {
+        return this.clockEventCallbackPtrs.get(callback);
     }
 
     tick(): void {
