@@ -22,8 +22,8 @@ interface AVRClockEventEntry {
 }
 
 class AVRClockEventEntryImpl implements AVRClockEventEntry {
-    private readonly _callback: AVRClockEventCallback;
-    private readonly _cycles: u64;
+    private _callback: AVRClockEventCallback;
+    private _cycles: u64;
     private _next: AVRClockEventEntry | null;
 
     constructor(cycles: u64, callback: AVRClockEventCallback, next: AVRClockEventEntry | null = null) {
@@ -36,16 +36,24 @@ class AVRClockEventEntryImpl implements AVRClockEventEntry {
         return this._callback;
     }
 
+    set callback(value: AVRClockEventCallback) {
+        this._callback = value;
+    }
+
     get cycles(): u64 {
         return this._cycles;
     }
 
+    set cycles(value: u64) {
+        this._cycles = value;
+    }
+
     get next(): AVRClockEventEntry | null {
-        return this._next
+        return this._next;
     }
 
     set next(value: AVRClockEventEntry | null) {
-        this._next = value
+        this._next = value;
     }
 }
 
