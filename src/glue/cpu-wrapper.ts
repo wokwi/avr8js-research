@@ -9,20 +9,39 @@ const modulePath = __dirname + "/../../build/untouched.wasm"
 
 export class CPU {
 
+    // WASM
     readonly wasm: ResultObject & { exports: ASUtil & typeof MyModule; };
     readonly loader: ASUtil & typeof MyModule;
     readonly avr8js: typeof avr8js;
+    readonly cpu: WACPU;
+    readonly cpuPtr: usize;
+
+    // Mapped
     readonly data: Uint8Array;
     readonly dataView: DataView;
+
+    // Wrapped
     private readonly _readHooks = new Map<u32, CPUMemoryReadHook>();
     readonly readHooks = this.buildReadHookProxy();
     private readonly _writeHooks = new Map<u32, CPUMemoryHook>();
     readonly writeHooks = this.buildWriteHookProxy()
-    nextClockEventId = 0;
+    private nextClockEventId = 0;
     readonly clockEventCallbacks: Map<u32, AVRClockEventCallback> = new Map<u32, AVRClockEventCallback>();
     readonly clockEventCallbackPtrs: Map<AVRClockEventCallback, usize> = new Map<AVRClockEventCallback, u32>();
-    readonly cpu: WACPU;
-    readonly cpuPtr: usize;
+
+    constructor(program: Uint16Array, sramBytes: u32 = 8192) {
+        this.wasm = this.instantiateWASM(modulePath);
+        this.loader = this.wasm.exports;
+        this.avr8js = this.loader.avr8js;
+
+        const programArray = this.loader.__newArray(this.avr8js.Uint16Array_ID, program)
+        // Instantiation with this.loader.CPU(programArray, sramBytes) causes unreachable exception
+        // Maybe because the optional bigint sramBytes
+        this.cpuPtr = this.avr8js.newCPU(programArray, BigInt(sramBytes));
+        this.cpu = this.loader.CPU.wrap(this.cpuPtr);
+        this.data = this.loader.__getUint8ArrayView(this.cpu.data);
+        this.dataView = new DataView(this.data.buffer, this.data.byteOffset, this.data.byteLength);
+    }
 
     private buildReadHookProxy(): Object {
         return new Proxy({}, {
@@ -46,20 +65,6 @@ export class CPU {
                 return this.getMemoryWriteHook(+key);
             }
         })
-    }
-
-    constructor(program: Uint16Array, sramBytes: u32 = 8192) {
-        this.wasm = this.instantiateWASM(modulePath);
-        this.loader = this.wasm.exports;
-        this.avr8js = this.loader.avr8js;
-
-        const programArray = this.loader.__newArray(this.avr8js.Uint16Array_ID, program)
-        this.cpuPtr = this.avr8js.newCPU(programArray, BigInt(sramBytes));
-        // Instantiation with this.loader.CPU(programArray, sramBytes) causes unreachable exception
-        // Maybe because the optional bigint sramBytes
-        this.cpu = this.loader.CPU.wrap(this.cpuPtr);
-        this.data = this.loader.__getUint8ArrayView(this.cpu.data);
-        this.dataView = new DataView(this.data.buffer, this.data.byteOffset, this.data.byteLength);
     }
 
     private instantiateWASM(modulePath: string): ResultObject & { exports: ASUtil & typeof MyModule } {
