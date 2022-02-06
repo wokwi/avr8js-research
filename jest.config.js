@@ -9,19 +9,9 @@ module.exports = {
     testEnvironment: 'node',
     globals: {
         'ts-jest': {
-            // tsConfig: 'tsconfig.spec.json',
-            // useESM: true,
-        },
-        transform: {
-            "\\.[jt]sx?$": "babel-jest"
-        },
-        transformIgnorePatterns: [
-            'node_modules/(?!@assemblyscript)'
-        ],
+            tsconfig: 'tsconfig.spec.json',
+        }
     },
     moduleFileExtensions: [...defaults.moduleFileExtensions, 'd.ts'],
     testPathIgnorePatterns : []
-    // moduleNameMapper: {
-    //   '^(\\.{1,2}/.*)\\.js$': '$1',
-    // },
 };
