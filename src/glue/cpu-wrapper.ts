@@ -2,7 +2,6 @@ import {ASUtil, ResultObject} from "@assemblyscript/loader";
 import * as MyModule from "../../build/module";
 import {
     avr8js,
-    AVRInterruptConfigImpl as AVRInterruptConfig,
     AVRInterruptConfigImpl,
     CPU as WACPU,
     u16,
@@ -10,7 +9,7 @@ import {
     u8,
     usize
 } from "../../build/module";
-import {AVRClockEventCallback} from "./interfaces";
+import {AVRClockEventCallback, AVRInterruptConfig} from "./interfaces";
 import {readFileSync} from "fs";
 import {instantiateSync} from "@assemblyscript/loader/umd";
 
