@@ -1,7 +1,7 @@
 import {CPU} from "../avr8js/cpu/cpu";
 import {avrInstruction} from "../avr8js/cpu/instruction";
 import {avrInterrupt as _avrInterrupt} from '../avr8js/cpu/interrupt';
-import {callReadHook, callWriteHook} from './cpu-bridge';
+import {callOnWatchdogReset, callReadHook, callWriteHook} from './cpu-bridge';
 import {ExternalAVRClockEventCallback} from "../avr8js/cpu/interfaces";
 
 export namespace avr8js {
@@ -18,6 +18,10 @@ export namespace avr8js {
         for (let i: u32 = 0; i < cycles; i++) {
             avrInstruction(cpu)
         }
+    }
+
+    export function setExternalOnWatchdogReset(cpu : CPU): void {
+        cpu.onWatchdogReset = callOnWatchdogReset;
     }
 
     export function avrInterrupt(cpu: CPU, addr: u8): void {

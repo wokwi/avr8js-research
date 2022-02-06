@@ -21,6 +21,7 @@ export class CPU {
     readonly dataView: DataView;
 
     // Wrapped
+    private _onWatchdogReset: () => void = null;
     private readonly _readHooks = new Map<u32, CPUMemoryReadHook>();
     readonly readHooks = this.buildReadHookProxy();
     private readonly _writeHooks = new Map<u32, CPUMemoryHook>();
@@ -80,7 +81,8 @@ export class CPU {
                 callWriteHook: (value: u8, oldValue: u8, addr: u16, mask: u8): boolean => {
                     return this._writeHooks.get(addr)(value, oldValue, addr, mask)
                 },
-                callClockEventCallback: (callbackId: u32) => this.clockEventCallbacks.get(callbackId)()
+                callClockEventCallback: (callbackId: u32) => this.clockEventCallbacks.get(callbackId)(),
+                callOnWatchdogReset: () => this.onWatchdogReset()
             }
         })
     }
@@ -135,6 +137,17 @@ export class CPU {
 
     get pc22Bits(): boolean {
         return !!this.cpu.pc22Bits;
+    }
+
+    // Watchdog
+
+    set onWatchdogReset(callback: () => void) {
+        this._onWatchdogReset = callback;
+        this.avr8js.setExternalOnWatchdogReset(this.cpuPtr);
+    }
+
+    get onWatchdogReset(): () => void {
+        return this._onWatchdogReset;
     }
 
     // Interrupts
