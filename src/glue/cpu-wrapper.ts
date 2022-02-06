@@ -1,15 +1,7 @@
 import {ASUtil, ResultObject} from "@assemblyscript/loader";
 import * as MyModule from "../../build/module";
-import {
-    avr8js,
-    AVRInterruptConfigImpl,
-    CPU as WACPU,
-    u16,
-    u32,
-    u8,
-    usize
-} from "../../build/module";
-import {AVRClockEventCallback, AVRInterruptConfig} from "./interfaces";
+import {avr8js, AVRInterruptConfigImpl, CPU as WACPU, u16, u32, u8, usize} from "../../build/module";
+import {AVRClockEventCallback, AVRInterruptConfig, CPUMemoryHook, CPUMemoryReadHook} from "./interfaces";
 import {readFileSync} from "fs";
 import {instantiateSync} from "@assemblyscript/loader/umd";
 
@@ -22,12 +14,39 @@ export class CPU {
     readonly avr8js: typeof avr8js;
     readonly data: Uint8Array;
     readonly dataView: DataView;
-    readonly writeHooks = {};
+    private readonly _readHooks = new Map<u32, CPUMemoryReadHook>();
+    readonly readHooks = this.buildReadHookProxy();
+    private readonly _writeHooks = new Map<u32, CPUMemoryHook>();
+    readonly writeHooks = this.buildWriteHookProxy()
     nextClockEventId = 0;
     readonly clockEventCallbacks: Map<u32, AVRClockEventCallback> = new Map<u32, AVRClockEventCallback>();
     readonly clockEventCallbackPtrs: Map<AVRClockEventCallback, usize> = new Map<AVRClockEventCallback, u32>();
     readonly cpu: WACPU;
     readonly cpuPtr: usize;
+
+    private buildReadHookProxy(): Object {
+        return new Proxy({}, {
+            set: (target: {}, key: string, value: CPUMemoryReadHook, receiver: any): boolean => {
+                this.addMemoryReadHook(+key, value);
+                return true;
+            },
+            get: (target: {}, key: string, receiver: any): CPUMemoryReadHook => {
+                return this.getMemoryReadHook(+key);
+            }
+        })
+    }
+
+    private buildWriteHookProxy(): Object {
+        return new Proxy({}, {
+            set: (target: {}, key: string, value: CPUMemoryHook, receiver: any): boolean => {
+                this.addMemoryWriteHook(+key, value);
+                return true;
+            },
+            get: (target: {}, key: string, receiver: any): CPUMemoryHook => {
+                return this.getMemoryWriteHook(+key);
+            }
+        })
+    }
 
     constructor(program: Uint16Array, sramBytes: u32 = 8192) {
         this.wasm = this.instantiateWASM(modulePath);
@@ -50,8 +69,11 @@ export class CPU {
                 log: (ptr: number) => console.log('WASM-Log: ' + this.wasm.exports.__getString(ptr)),
             },
             "cpu-bridge": {
-                callWriteHook: (value: number, oldValue: number, addr: number, mask: number): boolean => {
-                    return this.writeHooks[addr](value, oldValue, addr, mask)
+                callReadHook: (addr: u16): u8 => {
+                    return this._readHooks.get(addr)(addr)
+                },
+                callWriteHook: (value: u8, oldValue: u8, addr: u16, mask: u8): boolean => {
+                    return this._writeHooks.get(addr)(value, oldValue, addr, mask)
                 },
                 callClockEventCallback: (callbackId: u32) => this.clockEventCallbacks.get(callbackId)()
             }
@@ -157,6 +179,26 @@ export class CPU {
             interrupt.flagMask,
             interrupt.constant,
             interrupt.inverseFlag)
+    }
+
+    // Memory Hooks
+
+    addMemoryReadHook(addr: u16, readHook: CPUMemoryReadHook) {
+        this._readHooks.set(addr, readHook);
+        this.avr8js.addReadHook(this.cpuPtr, addr);
+    }
+
+    getMemoryReadHook(addr: u16): CPUMemoryReadHook {
+        return this._readHooks.get(addr);
+    }
+
+    addMemoryWriteHook(addr: u16, writeHook: CPUMemoryHook) {
+        this._writeHooks.set(addr, writeHook);
+        this.avr8js.addWriteHook(this.cpuPtr, addr);
+    }
+
+    getMemoryWriteHook(addr: u16): CPUMemoryHook {
+        return this._writeHooks.get(addr);
     }
 
     // ClockEvents
