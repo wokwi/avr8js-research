@@ -1,5 +1,5 @@
-import { CPU } from '../../src/glue/cpu-wrapper';
-import { assemble } from '../utils/assembler';
+import {CPU} from '../../src/glue/cpu-wrapper';
+import {assemble} from '../utils/assembler';
 
 const r0 = 0;
 const r1 = 1;
@@ -1059,6 +1059,14 @@ describe('avrInstruction', () => {
     expect(cpu.pc).toEqual(1);
     expect(cpu.cycles).toEqual(1);
     expect(cpu.data[r1]).toEqual(0x5a);
+  });
+
+  it('should execute `WDR` instruction and call `cpu.onWatchdogReset`', () => {
+    loadProgram('WDR');
+    cpu.onWatchdogReset = jest.fn();
+    expect(cpu.onWatchdogReset).not.toHaveBeenCalled();
+    avrInstruction(cpu);
+    expect(cpu.onWatchdogReset).toHaveBeenCalled();
   });
 
   it('should execute `XCH Z, r21` instruction', () => {
