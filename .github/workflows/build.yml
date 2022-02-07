@@ -28,9 +28,9 @@ jobs:
           npm run jest
         env:
           CI: true
-      - name: Run benchmark / tests
-        run: |
-          npm run arduino:compile
-          npm test
-        env:
-          CI: true
+#      - name: Run benchmark / tests
+#        run: |
+#          npm run arduino:compile
+#          npm test
+#        env:
+#          CI: true
