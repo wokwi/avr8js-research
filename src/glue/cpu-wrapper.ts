@@ -4,6 +4,7 @@ import {avr8js, AVRInterruptConfigImpl, CPU as WACPU, u16, u32, u8, usize} from 
 import {AVRClockEventCallback, AVRInterruptConfig, CPUMemoryHook, CPUMemoryReadHook} from "./interfaces";
 import {readFileSync} from "fs";
 import {instantiateSync} from "@assemblyscript/loader/umd";
+import {AVRIOPort} from "../peripherals/gpio";
 
 const modulePath = __dirname + "/../../build/untouched.wasm"
 
@@ -29,6 +30,10 @@ export class CPU {
     private nextClockEventId = 0;
     readonly clockEventCallbacks: Map<u32, AVRClockEventCallback> = new Map<u32, AVRClockEventCallback>();
     readonly clockEventCallbackPtrs: Map<AVRClockEventCallback, usize> = new Map<AVRClockEventCallback, u32>();
+
+    // Local
+    readonly gpioPorts: Set<AVRIOPort> = new Set<AVRIOPort>();
+    readonly gpioByPort: AVRIOPort[] = [];
 
     constructor(program: Uint16Array, sramBytes: u32 = 8192) {
         this.wasm = this.instantiateWASM(modulePath);
