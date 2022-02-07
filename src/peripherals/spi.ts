@@ -62,6 +62,8 @@ export class AVRSPI {
     flagMask: SPSR_SPIF,
     enableRegister: this.config.SPCR,
     enableMask: SPCR_SPIE,
+    constant: false,
+    inverseFlag: false
   };
 
   constructor(private cpu: CPU, private config: SPIConfig, private freqHz: number) {
