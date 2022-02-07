@@ -7,7 +7,6 @@
  * v0.18.8 - Modified by Dario Götze
  */
 
-import {AVRIOPort} from '../peripherals/gpio';
 import {avrInterrupt} from './interrupt';
 import {AVRInterruptConfig, CPUMemoryHooks, CPUMemoryReadHooks, AVRClockEventCallback} from "./interfaces";
 
@@ -73,9 +72,6 @@ export class CPU {
      * Whether the program counter (PC) can address 22 bits (the default is 16)
      */
     readonly pc22Bits: boolean = this.progBytes.length > 0x20000;
-
-    readonly gpioPorts: Set<AVRIOPort> = new Set<AVRIOPort>();
-    readonly gpioByPort: AVRIOPort[] = [];
 
     /**
      * This function is called by the WDR instruction. The Watchdog peripheral attaches
